@@ -19,7 +19,7 @@
       .game-container {
           position: relative;
           width: 100%;
-          height: 750px;
+          height: 500px;
           border: 2px solid #ff9999;
           margin: 20px auto;
           overflow: hidden;
@@ -80,12 +80,21 @@
     
         // Move the basket with mouse movement
         gameContainer.addEventListener('mousemove', (e) => {
+            moveBasket(e.clientX);
+        });
+    
+        // Move the basket with touch movement
+        gameContainer.addEventListener('touchmove', (e) => {
+            moveBasket(e.touches[0].clientX);
+        });
+    
+        function moveBasket(clientX) {
             const containerRect = gameContainer.getBoundingClientRect();
-            let mouseX = e.clientX - containerRect.left;
+            let mouseX = clientX - containerRect.left;
             if (mouseX < 0) mouseX = 0;
             if (mouseX > containerRect.width - basket.offsetWidth) mouseX = containerRect.width - basket.offsetWidth;
             basket.style.left = mouseX + 'px';
-        });
+        }
     
         // Create multiple hearts
         for (let i = 0; i < heartCount; i++) {
@@ -147,7 +156,7 @@
     
         // Game over function
         function gameOver() {
-            alert('Game Over! You missed 25 hearts.  Your score was ' + score + '!');
+            alert('Game Over! You missed 25 hearts.');
             resetGame();
         }
     
