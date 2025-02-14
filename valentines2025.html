@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Hearts Game</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          background-color: #ffe6e6;
+      }
+      
+      .score .missed {
+          font-size: 24px;
+          margin: 10px;
+      }
+      
+      .game-container {
+          position: relative;
+          width: 100%;
+          height: 750px;
+          border: 2px solid #ff9999;
+          margin: 20px auto;
+          overflow: hidden;
+          background-color: #fff;
+      }
+      
+      .basket {
+          position: absolute;
+          bottom: 10px;
+          width: 100px;
+          height: 50px;
+          background-color: #ff6666;
+          border-radius: 10px;
+      }
+      
+      .heart {
+        position: absolute;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        background-color: #ff3333;
+        transform: rotate(45deg);
+        transform-origin: center;
+      }
+      
+      .heart::before,
+      .heart::after {
+          content: '';
+          position: absolute;
+          width: 30px;
+          height: 30px;
+          background-color: #ff3333;
+          border-radius: 50%;
+      }
+      
+      .heart::before {
+          top: -15px;
+          left: 0;
+      }
+      
+      .heart::after {
+          top: 0;
+          left: -15px;
+      }
+    </style>  
+    <script>
+     document.addEventListener('DOMContentLoaded', () => {
+        const basket = document.getElementById('basket');
+        const gameContainer = document.querySelector('.game-container');
+        const scoreDisplay = document.getElementById('score');
+        const missedDisplay = document.getElementById('missed');
+        let score = 0;
+        let missed = 0;
+        const heartCount = 2; // Number of hearts
+        let fallSpeed = 5; // Initial fall speed
+        let speedIncreaseInterval = 5000; // Interval to increase speed (in milliseconds)
+        const maxMissed = 25; // Maximum missed hearts before game over
+    
+        // Move the basket with mouse movement
+        gameContainer.addEventListener('mousemove', (e) => {
+            const containerRect = gameContainer.getBoundingClientRect();
+            let mouseX = e.clientX - containerRect.left;
+            if (mouseX < 0) mouseX = 0;
+            if (mouseX > containerRect.width - basket.offsetWidth) mouseX = containerRect.width - basket.offsetWidth;
+            basket.style.left = mouseX + 'px';
+        });
+    
+        // Create multiple hearts
+        for (let i = 0; i < heartCount; i++) {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            gameContainer.appendChild(heart);
+            resetHeart(heart);
+            animateHeart(heart);
+        }
+    
+        // Check for collision
+        function checkCollision(heart) {
+            const heartRect = heart.getBoundingClientRect();
+            const basketRect = basket.getBoundingClientRect();
+    
+            if (
+                heartRect.bottom >= basketRect.top &&
+                heartRect.left >= basketRect.left &&
+                heartRect.right <= basketRect.right
+            ) {
+                score++;
+                scoreDisplay.textContent = score;
+                resetHeart(heart);
+            }
+        }
+    
+        // Reset heart position
+        function resetHeart(heart) {
+            heart.style.top = '0px';
+            heart.style.left = Math.random() * (gameContainer.clientWidth - 30) + 'px';
+        }
+    
+        // Animate the heart falling
+        function animateHeart(heart) {
+            function fall() {
+                let heartTop = parseInt(heart.style.top);
+                if (heartTop < gameContainer.clientHeight - 30) {
+                    heart.style.top = heartTop + fallSpeed + 'px';
+                    checkCollision(heart);
+                } else {
+                    missed++;
+                    missedDisplay.textContent = missed;
+                    if (missed >= maxMissed) {
+                        gameOver();
+                        return;
+                    } else {
+                        resetHeart(heart);
+                    }
+                }
+                requestAnimationFrame(fall);
+            }
+            fall();
+        }
+    
+        // Increase fall speed over time
+        setInterval(() => {
+            fallSpeed += 1; // Increase speed by 1 pixel per frame
+        }, speedIncreaseInterval);
+    
+        // Game over function
+        function gameOver() {
+            alert('Game Over! You missed 25 hearts.  Your score was ' + score + '!');
+            resetGame();
+        }
+    
+        // Reset game function
+        function resetGame() {
+            score = 0;
+            missed = 0;
+            fallSpeed = 5;
+            scoreDisplay.textContent = score;
+            missedDisplay.textContent = missed;
+            const hearts = document.querySelectorAll('.heart');
+            hearts.forEach(heart => resetHeart(heart));
+        }
+    });
+  </script>
+</head>
+<body>
+    <h1>Catch the Hearts</h1>
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="missed">Missed: <span id="missed">0</span></div>
+    <div class="game-container">
+        <div class="basket" id="basket"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
