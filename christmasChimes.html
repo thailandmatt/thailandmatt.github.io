@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Chimes Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: rgba(139, 0, 0, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 3px solid #8B0000;
+        }
+
+        h1 {
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .song-selector {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .song-selector select {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 2px solid #FFD700;
+            background: #fff;
+            cursor: pointer;
+            min-width: 300px;
+        }
+
+        .bells-needed {
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 15px;
+            background: rgba(255, 215, 0, 0.15);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            white-space: nowrap;
+        }
+
+        .bells-needed .label {
+            color: #98FB98;
+            margin-right: 8px;
+        }
+
+        .display-container {
+            flex: 1;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            margin: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            scroll-behavior: auto;
+            min-height: 0;
+        }
+        
+        .display-container::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .display-container::-webkit-scrollbar-track {
+            background: rgba(139, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+        
+        .display-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.6);
+            border-radius: 6px;
+        }
+        
+        .display-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 215, 0, 0.8);
+        }
+
+        .bouncing-ball {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at 30% 30%, #FF4444, #CC0000);
+            border-radius: 50%;
+            z-index: 100;
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4);
+            pointer-events: none;
+            transition: none;
+        }
+
+        .notes-container {
+            position: relative;
+            padding: 100px 40px;
+            padding-bottom: calc(100vh - 270px); /* Ensure bottom padding for last line to scroll to ball position (190px + 80px) */
+            min-height: 100%;
+        }
+
+        .music-line {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .note-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            font-size: 56px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .word-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            font-size: 28px;
+            font-weight: normal;
+            font-style: italic;
+            min-height: 40px;
+        }
+
+        .note {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            padding: 10px 15px;
+            text-align: center;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .word {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            padding: 5px 15px;
+            text-align: center;
+            color: #98FB98;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+            transition: all 0.15s ease;
+        }
+
+        .note.active {
+            color: #FF0000;
+            font-weight: 900;
+            transform: scale(1.2);
+            text-shadow: 0 0 25px rgba(255, 0, 0, 0.9);
+        }
+
+        .word.active {
+            color: #FF6B6B;
+            font-weight: bold;
+            transform: scale(1.15);
+            text-shadow: 0 0 18px rgba(255, 107, 107, 0.8);
+        }
+
+        .note.dash {
+            color: rgba(255, 215, 0, 0.5);
+        }
+
+        .controls {
+            background: rgba(139, 0, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-top: 3px solid #8B0000;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #FFD700;
+            background: #8B0000;
+            color: #FFD700;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #A52A2A;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .play-pause {
+            font-size: 20px;
+            padding: 15px 30px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .note-row {
+                font-size: 36px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎄 Christmas Chimes Player 🔔</h1>
+        <div class="song-selector">
+            <select id="songSelect">
+                <option value="">Select a Song...</option>
+            </select>
+            <div class="bells-needed" id="bellsNeeded" style="display: none;">
+                <span class="label">Bells needed:</span>
+                <span id="bellsList"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="display-container" id="displayContainer">
+        <div class="bouncing-ball" id="bouncingBall" style="display: none;"></div>
+        <div class="notes-container" id="notesContainer"></div>
+    </div>
+
+    <div class="controls">
+        <button id="startBtn" title="Jump to Start">⏮ Start</button>
+        <button id="prevBtn" title="Previous Note">⏪ Back</button>
+        <button id="playPauseBtn" class="play-pause">▶ Play</button>
+        <button id="nextBtn" title="Next Note">⏩ Forward</button>
+        <button id="endBtn" title="Jump to End">⏭ End</button>
+        
+        <div class="control-group">
+            <label for="speedControl">Speed (BPM):</label>
+            <input type="number" id="speedControl" min="40" max="200" value="90" step="5">
+        </div>
+    </div>
+
+    <script>
+        // Song database - Each note has topNote, bottomNote, duration, and optional word/lineBreak
+        // Use '-' for topNote or bottomNote when only one bell plays
+        // Duration in beats: 0.5 = eighth note, 1 = quarter note, 2 = half note, 3 = dotted half, 4 = whole note
+        // Add lineBreak: true to force a new line after this note (otherwise auto-breaks at 8 beats)
+        const songs = {
+            "Angels We Have Heard on High": {
+                timeSignature: 4,
+                defaultBPM: 100,
+                notes: [
+                    // Count off
+                    {topNote: '-', bottomNote: '-', duration: 1},
+                    {topNote: '-', bottomNote: '-', duration: 1},
+                    {topNote: '-', bottomNote: '-', duration: 1},
+                    {topNote: '-', bottomNote: '-', duration: 1, lineBreak: true},
+                    // "Angels we have heard on high"
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'An-'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'gels'},
+                    {topNote: 10, bottomNote: 5, duration: 1, word: 'we'},
+                    {topNote: 13, bottomNote: 5, duration: 1, word: 'have'},
+                    {topNote: 13, bottomNote: 8, duration: 1, word: 'heard'},
+                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: "-", duration: 0.5, word: 'on'},
+                    {topNote: 10, bottomNote: 6, duration: 2, word: 'high', lineBreak: true},
+                    // "Sweetly singing o'er the plains"
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'Sweet-'},
+                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ly'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'sing'},
+                    {topNote: 13, bottomNote: 6, duration: 1, word: 'ing'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: "o'er"},
+                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: "-", duration: 0.5, word: 'the'},
+                    {topNote: 6, bottomNote: "-", duration: 2, word: 'plains', lineBreak: true},
+                    // "And the mountains in reply"
+                   {topNote: 10, bottomNote: 6, duration: 1, word: 'And-'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'the'},
+                    {topNote: 10, bottomNote: 5, duration: 1, word: 'moun-'},
+                    {topNote: 13, bottomNote: 5, duration: 1, word: 'tains'},
+                    {topNote: 13, bottomNote: 8, duration: 1, word: 'in'},
+                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: "-", duration: 0.5, word: 're-'},
+                    {topNote: 10, bottomNote: 6, duration: 2, word: 'ply', lineBreak: true},
+                    // "Echoing their joyous strains"
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'Ech-'},
+                    {topNote: 8, bottomNote: 5, duration: 1, word: 'o-'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'ing'},
+                    {topNote: 13, bottomNote: 6, duration: 1, word: 'their'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'joy'},
+                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: "-", duration: 0.5, word: 'ous'},
+                    {topNote: 6, bottomNote: "-", duration: 2, word: 'strains', lineBreak: true},
+                    // "Gloria" - fast runs
+                    {topNote: 13, bottomNote: 6, duration: 1, word: 'Glo'},
+                    {topNote: '-', bottomNote: 10, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
+                    {topNote: 15, bottomNote: 6, duration: 0.5, word: '-'},
+                    {topNote: 13, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 12, bottomNote: 6, duration: 1, word: '-'},
+                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-', lineBreak: true},
+                    {topNote: 13, bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: 5, duration: 1, word: '-'},
+                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 5, duration: 0.5, word: '-', lineBreak: true},
+                    {topNote: 11, bottomNote: 3, duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 6, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: 1, duration: 1.5, word: '-'},
+                    {topNote: 13, bottomNote: '-', duration: 0.5, word: 'ri-'},
+                    {topNote: 13, bottomNote: '-', duration: 2, word: 'a', lineBreak: true},
+                    // "in excelsis Deo"
+                    {topNote: 6, bottomNote: 1, duration: 1, word: 'in'},
+                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ex'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'cel'},
+                    {topNote: 11, bottomNote: 6, duration: 1, word: 'sis'},
+                    {topNote: 10, bottomNote: 6, duration: 2, word: 'De'},
+                    {topNote: 8, bottomNote: 5, duration: 2, word: 'o', lineBreak: true},
+                    // Second "Gloria"
+                    {topNote: 13, bottomNote: 6, duration: 1, word: 'Glo'},
+                    {topNote: '-', bottomNote: 10, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
+                    {topNote: 15, bottomNote: 6, duration: 0.5, word: '-'},
+                    {topNote: 13, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 12, bottomNote: 6, duration: 1, word: '-'},
+                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-', lineBreak: true},
+                    {topNote: 13, bottomNote: 5, duration: 0.5, word: '-'},
+                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: 5, duration: 1, word: '-'},
+                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-'},
+                    {topNote: '-', bottomNote: 5, duration: 0.5, word: '-', lineBreak: true},
+                    {topNote: 11, bottomNote: 3, duration: 0.5, word: '-'},
+                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 6, bottomNote: '-', duration: 0.5, word: '-'},
+                    {topNote: 8, bottomNote: 1, duration: 1.5, word: '-'},
+                    {topNote: 13, bottomNote: '-', duration: 0.5, word: 'ri-'},
+                    {topNote: 13, bottomNote: '-', duration: 2, word: 'a', lineBreak: true},
+                    // Final "in excelsis Deo"
+                    {topNote: 6, bottomNote: 1, duration: 1, word: 'in'},
+                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ex'},
+                    {topNote: 10, bottomNote: 6, duration: 1, word: 'cel'},
+                    {topNote: 11, bottomNote: 6, duration: 1, word: 'sis'},
+                    {topNote: 10, bottomNote: 6, duration: 2, word: 'De'},
+                    {topNote: 8, bottomNote: 5, duration: 2, word: '-'},
+                    {topNote: 6, bottomNote: 1, duration: 4, word: 'o'},
+                    {topNote: "-", bottomNote: "-", duration: 4, word: '-'},
+                ]
+            }
+        };
+
+        // Player state
+        let currentSong = null;
+        let currentNoteIndex = -1;
+        let isPlaying = false;
+        let animationFrameId = null;
+        let startTime = null;
+        let pausedTime = 0;
+        let noteTimes = []; // Cumulative time in beats for each note
+        let noteElements = []; // Store references to note elements with their positions
+        let totalBeats = 0;
+        const BEATS_PER_LINE = 8; // Approximate 2 measures of 4/4 time
+        let lastScrolledLineIndex = -1; // Track which line we last scrolled for
+        
+        // Scroll animation state
+        let scrollAnimationStart = null;
+        let scrollAnimationDuration = 0;
+        let scrollStartPosition = 0;
+        let scrollTargetPosition = 0;
+        let isScrollAnimating = false;
+
+        // DOM elements
+        const songSelect = document.getElementById('songSelect');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const startBtn = document.getElementById('startBtn');
+        const endBtn = document.getElementById('endBtn');
+        const speedControl = document.getElementById('speedControl');
+        const displayContainer = document.getElementById('displayContainer');
+        const notesContainer = document.getElementById('notesContainer');
+        const bouncingBall = document.getElementById('bouncingBall');
+        const bellsNeeded = document.getElementById('bellsNeeded');
+        const bellsList = document.getElementById('bellsList');
+
+        // Calculate required bells for current song
+        function calculateRequiredBells() {
+            const bellsSet = new Set();
+            
+            currentSong.notes.forEach((noteData) => {
+                if (noteData.topNote !== '-') {
+                    bellsSet.add(noteData.topNote);
+                }
+                if (noteData.bottomNote !== '-') {
+                    bellsSet.add(noteData.bottomNote);
+                }
+            });
+            
+            return Array.from(bellsSet).sort((a, b) => a - b);
+        }
+
+        // Calculate cumulative times for each note
+        function calculateNoteTimes() {
+            noteTimes = [];
+            let cumulativeTime = 0;
+            
+            currentSong.notes.forEach((noteData) => {
+                noteTimes.push(cumulativeTime);
+                cumulativeTime += noteData.duration || 1;
+            });
+            
+            noteTimes.push(cumulativeTime);
+            totalBeats = cumulativeTime;
+        }
+
+        // Organize notes into lines (auto-breaks at BEATS_PER_LINE or when lineBreak: true)
+        function organizeNotesIntoLines() {
+            const lines = [];
+            let currentLine = {notes: [], startBeat: 0};
+            let lineBeats = 0;
+            
+            currentSong.notes.forEach((noteData, index) => {
+                currentLine.notes.push({...noteData, index});
+                lineBeats += noteData.duration || 1;
+                
+                // Start new line: explicit lineBreak, BEATS_PER_LINE, or end of song
+                const shouldBreak = noteData.lineBreak || lineBeats >= BEATS_PER_LINE || index === currentSong.notes.length - 1;
+                if (shouldBreak) {
+                    lines.push(currentLine);
+                    currentLine = {notes: [], startBeat: noteTimes[index + 1] || totalBeats};
+                    lineBeats = 0;
+                }
+            });
+            
+            return lines;
+        }
+
+        // Render notes in vertical lines
+        function renderNotes() {
+            notesContainer.innerHTML = '';
+            noteElements = [];
+            
+            calculateNoteTimes();
+            const lines = organizeNotesIntoLines();
+            
+            lines.forEach((line, lineIndex) => {
+                const musicLine = document.createElement('div');
+                musicLine.className = 'music-line';
+                
+                // Row 1 (top notes)
+                const row1 = document.createElement('div');
+                row1.className = 'note-row';
+                line.notes.forEach(noteData => {
+                    const noteElem = document.createElement('span');
+                    noteElem.className = 'note' + (noteData.topNote === '-' ? ' dash' : '');
+                    noteElem.textContent = noteData.topNote;
+                    noteElem.dataset.index = noteData.index;
+                    noteElem.dataset.row = '1';
+                    row1.appendChild(noteElem);
+                    noteElements.push({elem: noteElem, index: noteData.index, row: 1, lineIndex: lineIndex});
+                });
+                
+                // Row 2 (bottom notes)
+                const row2 = document.createElement('div');
+                row2.className = 'note-row';
+                line.notes.forEach(noteData => {
+                    const noteElem = document.createElement('span');
+                    noteElem.className = 'note' + (noteData.bottomNote === '-' ? ' dash' : '');
+                    noteElem.textContent = noteData.bottomNote;
+                    noteElem.dataset.index = noteData.index;
+                    noteElem.dataset.row = '2';
+                    row2.appendChild(noteElem);
+                    noteElements.push({elem: noteElem, index: noteData.index, row: 2, lineIndex: lineIndex});
+                });
+                
+                // Words row
+                const wordRow = document.createElement('div');
+                wordRow.className = 'word-row';
+                line.notes.forEach(noteData => {
+                    const wordElem = document.createElement('span');
+                    wordElem.className = 'word';
+                    wordElem.textContent = noteData.word || '';
+                    wordElem.dataset.index = noteData.index;
+                    wordRow.appendChild(wordElem);
+                });
+                
+                musicLine.appendChild(row1);
+                musicLine.appendChild(row2);
+                musicLine.appendChild(wordRow);
+                notesContainer.appendChild(musicLine);
+            });
+        }
+
+        // Parabolic easing function for bounce
+        function parabolicEase(t) {
+            // Creates a parabolic arc: 0 at start, peaks at 0.5, returns to 0 at end
+            return 4 * t * (1 - t);
+        }
+
+        // Animate bouncing ball smoothly from one note to next
+        function animateBall(timestamp) {
+            if (!isPlaying || !currentSong) return;
+            
+            if (!startTime) {
+                startTime = timestamp - pausedTime;
+            }
+            
+            const elapsedMs = timestamp - startTime;
+            const elapsedSeconds = elapsedMs / 1000;
+            
+            const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+            const beatsPerSecond = bpm / 60;
+            const currentBeat = elapsedSeconds * beatsPerSecond;
+            
+            // Check if song is finished
+            if (currentBeat >= totalBeats) {
+                stop();
+                return;
+            }
+            
+            // Find current and next note
+            let noteIdx = 0;
+            for (let i = 0; i < noteTimes.length - 1; i++) {
+                if (currentBeat >= noteTimes[i] && currentBeat < noteTimes[i + 1]) {
+                    noteIdx = i;
+                    break;
+                }
+            }
+            
+            // Update active note if changed
+            if (noteIdx !== currentNoteIndex) {
+                updateActiveNote(noteIdx);
+                currentNoteIndex = noteIdx;
+            }
+            
+            // Animate ball between current and next note
+            const currentNoteTime = noteTimes[noteIdx];
+            const nextNoteTime = noteTimes[noteIdx + 1];
+            const noteDuration = nextNoteTime - currentNoteTime;
+            const progress = (currentBeat - currentNoteTime) / noteDuration;
+            
+            // Find note elements for current and next note
+            const currentNotes = noteElements.filter(ne => ne.index === noteIdx);
+            const nextNotes = noteElements.filter(ne => ne.index === noteIdx + 1);
+            
+            if (currentNotes.length > 0) {
+                const currentNote1 = currentNotes.find(ne => ne.row === 1);
+                const nextNote1 = nextNotes.find(ne => ne.row === 1);
+                
+                if (currentNote1 && currentNote1.elem && nextNote1 && nextNote1.elem) {
+                    const currentRect = currentNote1.elem.getBoundingClientRect();
+                    const nextRect = nextNote1.elem.getBoundingClientRect();
+                    const containerRect = displayContainer.getBoundingClientRect();
+                    
+                    // Fixed Y position for the ball (190px from top of viewport)
+                    const fixedBallY = 190;
+                    const bounceHeight = Math.min(50, noteDuration * 20); // Bounce height depends on duration
+                    const ballY = fixedBallY - (parabolicEase(progress) * bounceHeight);
+                    
+                    // Interpolate X position (horizontal arc from current to next note)
+                    const startX = currentRect.left + currentRect.width / 2 - 20;
+                    const endX = nextRect.left + nextRect.width / 2 - 20;
+                    const ballX = startX + (endX - startX) * progress;
+                    
+                    bouncingBall.style.left = ballX + 'px';
+                    bouncingBall.style.top = ballY + 'px';
+                    bouncingBall.style.display = 'block';
+                    
+                    // Check if we're transitioning to a new line
+                    if (currentNote1.lineIndex !== nextNote1.lineIndex && currentNote1.lineIndex !== lastScrolledLineIndex) {
+                        // Start scroll animation to new line (starts when ball hits last note of current line)
+                        const nextYInContent = nextRect.top - containerRect.top + displayContainer.scrollTop;
+                        const maxScroll = displayContainer.scrollHeight - displayContainer.clientHeight;
+                        const targetScroll = Math.min(nextYInContent - fixedBallY + 80, maxScroll); // Scroll 80px more, capped at max
+                        
+                        // Calculate duration in milliseconds (duration of current note transition)
+                        const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+                        const msPerBeat = (60 / bpm) * 1000;
+                        const scrollDuration = noteDuration * msPerBeat;
+                        
+                        // Initialize scroll animation
+                        scrollAnimationStart = performance.now();
+                        scrollAnimationDuration = scrollDuration;
+                        scrollStartPosition = displayContainer.scrollTop;
+                        scrollTargetPosition = targetScroll;
+                        isScrollAnimating = true;
+                        lastScrolledLineIndex = currentNote1.lineIndex;
+                    }
+                    
+                    // Animate scroll if active
+                    if (isScrollAnimating) {
+                        const elapsed = performance.now() - scrollAnimationStart;
+                        const scrollProgress = Math.min(elapsed / scrollAnimationDuration, 1);
+                        const newScrollTop = scrollStartPosition + (scrollTargetPosition - scrollStartPosition) * scrollProgress;
+                        displayContainer.scrollTop = newScrollTop;
+                        
+                        // End animation when close enough or complete
+                        if (Math.abs(displayContainer.scrollTop - scrollTargetPosition) < 2 || scrollProgress >= 1) {
+                            isScrollAnimating = false;
+                        }
+                    }
+                } else if (currentNote1 && currentNote1.elem) {
+                    // Fallback for last note (no next note)
+                    const rect1 = currentNote1.elem.getBoundingClientRect();
+                    
+                    const fixedBallY = 190;
+                    const bounceHeight = Math.min(50, noteDuration * 20);
+                    const ballY = fixedBallY - (parabolicEase(progress) * bounceHeight);
+                    
+                    bouncingBall.style.left = (rect1.left + rect1.width / 2 - 20) + 'px';
+                    bouncingBall.style.top = ballY + 'px';
+                    bouncingBall.style.display = 'block';
+                }
+            }
+            
+            animationFrameId = requestAnimationFrame(animateBall);
+        }
+
+        // Update active note highlighting
+        function updateActiveNote(newIndex) {
+            // Remove active from all
+            document.querySelectorAll('.note.active, .word.active').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Add active to new notes
+            if (newIndex >= 0 && newIndex < currentSong.notes.length) {
+                document.querySelectorAll(`[data-index="${newIndex}"]`).forEach(el => {
+                    el.classList.add('active');
+                });
+            }
+        }
+
+        // Scroll to make a note visible
+        function scrollToNote(noteIndex) {
+            const noteElement = noteElements.find(ne => ne.index === noteIndex && ne.row === 1);
+            if (!noteElement || !noteElement.elem) return;
+            
+            const noteRect = noteElement.elem.getBoundingClientRect();
+            const containerRect = displayContainer.getBoundingClientRect();
+            const fixedBallY = 190;
+            
+            // Calculate target scroll position (note should be at ball position)
+            const noteYInContent = noteRect.top - containerRect.top + displayContainer.scrollTop;
+            const targetScroll = noteYInContent - fixedBallY + 80;
+            
+            // Clamp to valid scroll range
+            const maxScroll = displayContainer.scrollHeight - displayContainer.clientHeight;
+            const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+            
+            // Smooth scroll to position
+            displayContainer.scrollTo({
+                top: clampedScroll,
+                behavior: 'smooth'
+            });
+        }
+
+        // Load a song
+        function loadSong(songName) {
+            if (!songName) {
+                bellsNeeded.style.display = 'none';
+                return;
+            }
+            
+            currentSong = songs[songName];
+            currentNoteIndex = -1;
+            lastScrolledLineIndex = -1;
+            isScrollAnimating = false;
+            isPlaying = false;
+            startTime = null;
+            pausedTime = 0;
+            
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            playPauseBtn.textContent = '▶ Play';
+            speedControl.value = currentSong.defaultBPM;
+            bouncingBall.style.display = 'none';
+            
+            // Display required bells
+            const requiredBells = calculateRequiredBells();
+            bellsList.textContent = requiredBells.join(', ');
+            bellsNeeded.style.display = 'block';
+            
+            renderNotes();
+            displayContainer.scrollTop = 0;
+        }
+
+        // Play/Pause toggle
+        function togglePlayPause() {
+            if (!currentSong) return;
+            
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playPauseBtn.textContent = '⏸ Pause';
+                startTime = null;
+                animationFrameId = requestAnimationFrame(animateBall);
+            } else {
+                playPauseBtn.textContent = '▶ Play';
+                if (startTime !== null) {
+                    pausedTime = performance.now() - startTime;
+                }
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            }
+        }
+
+        // Stop playback
+        function stop() {
+            isPlaying = false;
+            playPauseBtn.textContent = '▶ Play';
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            bouncingBall.style.display = 'none';
+        }
+
+        // Next note
+        function nextNote() {
+            if (!currentSong) return;
+            stop();
+            
+            if (currentNoteIndex < currentSong.notes.length - 1) {
+                currentNoteIndex++;
+                updateActiveNote(currentNoteIndex);
+                scrollToNote(currentNoteIndex);
+                
+                const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+                const msPerBeat = (60 / bpm) * 1000;
+                pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
+            }
+        }
+
+        // Previous note
+        function previousNote() {
+            if (!currentSong) return;
+            stop();
+            
+            if (currentNoteIndex > 0) {
+                currentNoteIndex--;
+                updateActiveNote(currentNoteIndex);
+                scrollToNote(currentNoteIndex);
+                
+                const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+                const msPerBeat = (60 / bpm) * 1000;
+                pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
+            }
+        }
+
+        // Jump to start
+        function jumpToStart() {
+            stop();
+            loadSong(songSelect.value);
+        }
+
+        // Jump to end
+        function jumpToEnd() {
+            if (!currentSong) return;
+            stop();
+            currentNoteIndex = currentSong.notes.length - 1;
+            updateActiveNote(currentNoteIndex);
+            scrollToNote(currentNoteIndex);
+            
+            const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+            const msPerBeat = (60 / bpm) * 1000;
+            pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
+        }
+
+        // Initialize song selector
+        function initializeSongSelector() {
+            Object.keys(songs).forEach(songName => {
+                const option = document.createElement('option');
+                option.value = songName;
+                option.textContent = songName;
+                songSelect.appendChild(option);
+            });
+        }
+
+        // Event listeners
+        songSelect.addEventListener('change', (e) => {
+            loadSong(e.target.value);
+        });
+
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        prevBtn.addEventListener('click', previousNote);
+        nextBtn.addEventListener('click', nextNote);
+        startBtn.addEventListener('click', jumpToStart);
+        endBtn.addEventListener('click', jumpToEnd);
+
+        speedControl.addEventListener('change', () => {
+            if (currentSong) {
+                calculateNoteTimes();
+            }
+            if (isPlaying) {
+                stop();
+                togglePlayPause();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (!currentSong) return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    togglePlayPause();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    previousNote();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    nextNote();
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    jumpToStart();
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    jumpToEnd();
+                    break;
+            }
+        });
+
+        // Initialize
+        initializeSongSelector();
+    </script>
+</body>
+</html>
