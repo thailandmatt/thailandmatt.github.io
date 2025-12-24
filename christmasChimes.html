@@ -32,23 +32,23 @@
             border-bottom: 3px solid #8B0000;
         }
 
-.note-display-control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #FFD700;
-        font-weight: bold;
-        font-size: 14px;
-    }
+        .note-display-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-    .note-display-control select {
-        padding: 8px 12px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: 2px solid #FFD700;
-        background: #fff;
-        cursor: pointer;
-        font-weight: bold;
+        .note-display-control select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 2px solid #FFD700;
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .song-selector {
@@ -149,7 +149,6 @@
             gap: 30px;
             font-size: 56px;
             font-weight: bold;
-            margin-bottom: 15px;
         }
 
         .word-row {
@@ -326,6 +325,7 @@
         </div>
     </div>
 
+    <script src="songs.js"></script>
     <script>
         // Bell-to-Note Mapping (Chromatic scale from low B♭ to high E)
         // 1=B♭, 2=B, 3=C, 4=C#/D♭, 5=D, 6=D#/E♭, 7=E, 8=F, 9=F#/G♭, 10=G, 11=G#/A♭, 12=A, 13=A#/B♭, 14=B, 15=C, 16=C#/D♭, 17=D, 18=D#/E♭, 19=E
@@ -333,501 +333,19 @@
             1: 'B♭', 2: 'B', 3: 'C', 4: 'D♭', 5: 'D', 6: 'E♭', 7: 'E', 8: 'F', 9: 'G♭', 10: 'G',
             11: 'A♭', 12: 'A', 13: 'B♭', 14: 'B', 15: 'C', 16: 'D♭', 17: 'D', 18: 'E♭', 19: 'E'
         };
-        
+
         const bellToNoteSharps = {
             1: 'B♭', 2: 'B', 3: 'C', 4: 'C#', 5: 'D', 6: 'D#', 7: 'E', 8: 'F', 9: 'F#', 10: 'G',
             11: 'G#', 12: 'A', 13: 'A#', 14: 'B', 15: 'C', 16: 'C#', 17: 'D', 18: 'D#', 19: 'E'
         };
-        
-        let displayMode = 'bells'; // 'bells', 'sharps', or 'flats'
-        // Use '-' for topNote or bottomNote when only one bell plays
-        // Duration in beats: 0.5 = eighth note, 1 = quarter note, 2 = half note, 3 = dotted half, 4 = whole note
-        // Add lineBreak: true to force a new line after this note (otherwise auto-breaks at 8 beats)
-        const songs = {
-            "Angels We Have Heard on High": {
-                timeSignature: 4,
-                defaultBPM: 90,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
-                    // "Angels we have heard on high"
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'An-' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'gels' },
-                    { topNote: 12, bottomNote: 7, duration: 1, word: 'we' },
-                    { topNote: 15, bottomNote: 7, duration: 1, word: 'have' },
-                    { topNote: 15, bottomNote: 10, duration: 1, word: 'heard' },
-                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: "-", duration: 0.5, word: 'on' },
-                    { topNote: 12, bottomNote: 8, duration: 2, word: 'high', lineBreak: true },
-                    // "Sweetly singing o'er the plains"
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'Sweet-' },
-                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ly' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'sing' },
-                    { topNote: 15, bottomNote: 8, duration: 1, word: 'ing' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: "o'er" },
-                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: "-", duration: 0.5, word: 'the' },
-                    { topNote: 8, bottomNote: "-", duration: 2, word: 'plains', lineBreak: true },
-                    // "And the mountains in reply"
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'And-' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'the' },
-                    { topNote: 12, bottomNote: 7, duration: 1, word: 'moun-' },
-                    { topNote: 15, bottomNote: 7, duration: 1, word: 'tains' },
-                    { topNote: 15, bottomNote: 8, duration: 1, word: 'in' },
-                    { topNote: "-", bottomNote: 10, duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: "-", duration: 0.5, word: 're-' },
-                    { topNote: 12, bottomNote: 8, duration: 2, word: 'ply', lineBreak: true },
-                    // "Echoing their joyous strains"
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'Ech-' },
-                    { topNote: 10, bottomNote: 7, duration: 1, word: 'o-' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'ing' },
-                    { topNote: 15, bottomNote: 8, duration: 1, word: 'their' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'joy' },
-                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: "-", duration: 0.5, word: 'ous' },
-                    { topNote: 8, bottomNote: "-", duration: 2, word: 'strains', lineBreak: true },
-                    // "Gloria" - fast runs
-                    { topNote: 15, bottomNote: 8, duration: 1, word: 'Glo' },
-                    { topNote: '-', bottomNote: 12, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
-                    { topNote: 17, bottomNote: 8, duration: 0.5, word: '-' },
-                    { topNote: 15, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: 8, duration: 1, word: '-' },
-                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-', lineBreak: true },
-                    { topNote: 15, bottomNote: 7, duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: 7, duration: 1, word: '-' },
-                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 7, duration: 0.5, word: '-', lineBreak: true },
-                    { topNote: 13, bottomNote: 5, duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 8, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: 3, duration: 1.5, word: '-' },
-                    { topNote: 3, bottomNote: '-', duration: 0.5, word: 'ri-' },
-                    { topNote: 3, bottomNote: '-', duration: 2, word: 'a', lineBreak: true },
-                    // "in excelsis Deo"
-                    { topNote: 8, bottomNote: 3, duration: 1, word: 'in' },
-                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ex' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'cel' },
-                    { topNote: 13, bottomNote: 8, duration: 1, word: 'sis' },
-                    { topNote: 12, bottomNote: 8, duration: 2, word: 'De' },
-                    { topNote: 10, bottomNote: 7, duration: 2, word: 'o', lineBreak: true },
-                    // Second "Gloria"
-                    { topNote: 15, bottomNote: 8, duration: 1, word: 'Glo' },
-                    { topNote: '-', bottomNote: 12, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
-                    { topNote: 17, bottomNote: 8, duration: 0.5, word: '-' },
-                    { topNote: 15, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: 8, duration: 1, word: '-' },
-                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-', lineBreak: true },
-                    { topNote: 15, bottomNote: 7, duration: 0.5, word: '-' },
-                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: 7, duration: 1, word: '-' },
-                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-' },
-                    { topNote: '-', bottomNote: 7, duration: 0.5, word: '-', lineBreak: true },
-                    { topNote: 13, bottomNote: 5, duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 8, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: 3, duration: 1.5, word: '-' },
-                    { topNote: 3, bottomNote: '-', duration: 0.5, word: 'ri-' },
-                    { topNote: 3, bottomNote: '-', duration: 2, word: 'a', lineBreak: true },
-                    // Final "in excelsis Deo"
-                    { topNote: 8, bottomNote: 3, duration: 1, word: 'in' },
-                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ex' },
-                    { topNote: 12, bottomNote: 8, duration: 1, word: 'cel' },
-                    { topNote: 13, bottomNote: 8, duration: 1, word: 'sis' },
-                    { topNote: 12, bottomNote: 8, duration: 2, word: 'De' },
-                    { topNote: 10, bottomNote: 7, duration: 2, word: '-' },
-                    { topNote: 8, bottomNote: 3, duration: 4, word: 'o' },
-                    { topNote: "-", bottomNote: "-", duration: 4, word: '-' },
-                ]
-            },
-            "Joy to the world": {
-                timeSignature: 2,
-                defaultBPM: 75,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
-                    // "Joy to the world, the Lord is come"
-                    { topNote: 17, bottomNote: 9, duration: 1, word: 'Joy' },
-                    { topNote: 16, bottomNote: 12, duration: 0.75, word: 'to' },
-                    { topNote: 14, bottomNote: 10, duration: 0.25, word: 'the' },
-                    { topNote: 12, bottomNote: 9, duration: 1.5, word: 'world,' },
-                    { topNote: 10, bottomNote: 7, duration: 0.5, word: 'the' },
-                    { topNote: 9, bottomNote: 5, duration: 1, word: 'Lord' },
-                    { topNote: 7, bottomNote: 4, duration: 1, word: 'is' },
-                    { topNote: 5, bottomNote: '-', duration: 1.5, word: 'come;', lineBreak: true },
-                    // "Let earth receive her King!"
-                    { topNote: 12, bottomNote: '-', duration: 0.5, word: 'Let' },
-                    { topNote: 14, bottomNote: 10, duration: 1.5, word: 'earth' },
-                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 're-' },
-                    { topNote: 16, bottomNote: 7, duration: 1.5, word: 'ceive' },
-                    { topNote: 16, bottomNote: 10, duration: 0.5, word: 'her' },
-                    { topNote: 17, bottomNote: 9, duration: 2, word: 'king!', lineBreak: true },
-                    // "Let ev'ry heart prepare him room"
-                    { topNote: '-', bottomNote: '-', duration: 1.5, word: '-' },
-                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'Let' },
-                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'ev-' },
-                    { topNote: 16, bottomNote: 12, duration: 0.5, word: '-' },
-                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 'ry' },
-                    { topNote: 12, bottomNote: 9, duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'hea-' },
-                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-rt' },
-                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'pre-' },
-                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'pare' },
-                    { topNote: 16, bottomNote: 12, duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: 10, duration: 0.5, word: 'him' },
-                    { topNote: 12, bottomNote: 9, duration: 0.5, word: '-' },
-                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'room' },
-                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'And', lineBreak: true },
-                    // "And Saints and angels sing"
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'Saints' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'and' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'an-' },
-                    { topNote: 9, bottomNote: 5, duration: 0.25, word: 'gels' },
-                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
-                    { topNote: 12, bottomNote: 9, duration: 1.5, word: 'sing' },
-                    { topNote: 10, bottomNote: 7, duration: 0.25, word: 'And' },
-                    { topNote: 9, bottomNote: 5, duration: 0.25, word: '-' },
-                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'Saints' },
-                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'and' },
-                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'an-' },
-                    { topNote: 7, bottomNote: 4, duration: 0.25, word: 'gels' },
-                    { topNote: 9, bottomNote: 5, duration: 0.25, word: '-' },
-                    { topNote: 10, bottomNote: 7, duration: 1.5, word: 'sing' },
-                    { topNote: 9, bottomNote: 5, duration: 0.25, word: 'And' },
-                    { topNote: 7, bottomNote: 4, duration: 0.25, word: '-', lineBreak: true },
-                    // "And Saints, and Saints and angels sing"
-                    { topNote: 5, bottomNote: '-', duration: 0.5, word: 'Saints' },
-                    { topNote: 17, bottomNote: 9, duration: 1, word: '-' },
-                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 'and' },
-                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'Saints' },
-                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
-                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-' },
-                    { topNote: 10, bottomNote: 7, duration: 0.5, word: 'and' },
-                    { topNote: 9, bottomNote: 5, duration: 1, word: 'an-' },
-                    { topNote: 7, bottomNote: 4, duration: 1, word: 'gels' },
-                    { topNote: 5, bottomNote: '-', duration: 2, word: 'sing' },
-                ]
-            },
-            "O Come All Ye Faithful": {
-                timeSignature: 4,
-                defaultBPM: 85,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
-                    // "Oh come, all ye faithful"
-                    { topNote: 10, bottomNote: 5, duration: 1, word: 'Oh,'},                    
-                    { topNote: 10, bottomNote: 5, duration: 2, word: 'come,' },
-                    { topNote: 5, bottomNote: '-', duration: 1, word: 'all' },
-                    { topNote: 10, bottomNote: 2, duration: 1, word: 'ye' },
-                    { topNote: 12, bottomNote: 5, duration: 2, word: 'faith-' },
-                    { topNote: 5, bottomNote: "-", duration: 2, word: 'ful', lineBreak: true  },
 
-                    // "Joyful and triumphant!"
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'Joy-' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'ful'},
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'and' },
-                    { topNote: 15, bottomNote: 7, duration: 1, word: 'tri-' },
-                    { topNote: 14, bottomNote: 5, duration: 2, word: 'um-' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'phant!' , lineBreak: true },
-                    // "Oh come ye, Oh come ye to Bethlehem"
-                    { topNote: 10, bottomNote: 2, duration: 1, word: 'Oh,' },
-                    { topNote: 10, bottomNote: 2, duration: 1, word: 'come,' },
-                    { topNote: '-', bottomNote: 4, duration: 1, word: '-'},                    
-                    { topNote: 9, bottomNote: 5, duration: 1, word: 'ye,' },
-                    { topNote: 7, bottomNote: 4, duration: 1, word: 'Oh,' },
-                    { topNote: 9, bottomNote: 5, duration: 1, word: 'come,' },
-                    { topNote: 10, bottomNote: 5, duration: 1, word: '-' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'ye' },
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'to' },
-                    { topNote: 9, bottomNote: 5, duration: 2, word: 'Beth-'},
-                    { topNote: 7, bottomNote: 4, duration: 1.5, word: '-' },
-                    { topNote: 5, bottomNote: '-', duration: 0.5, word: 'le-' },
-                    { topNote: 5, bottomNote: '-', duration: 3, word: 'hem' },
-                    { topNote: '-', bottomNote: '-', duration: 1, word: '-', lineBreak: true },
-                    // "Come, and behold him"
-                    { topNote: 17, bottomNote: 5, duration: 2, word: 'Come,' },
-                    { topNote: 15, bottomNote: 7, duration: 0.5, word: 'and' },
-                    { topNote: '-', bottomNote: 9, duration: 0.5, word: '-' },
-                    { topNote: 14, bottomNote: 10, duration: 1, word: 'Be-' },
-                    { topNote: 15, bottomNote: 7, duration: 1, word: 'hold' },
-                    { topNote: '-', bottomNote: 9, duration: 1, word: '-' },
-                    { topNote: 14, bottomNote: 10, duration: 2, word: 'him', lineBreak: true },
-                    // "Born the King of angels;"
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'Born' },
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'the' },
-                    { topNote: 10, bottomNote: 7, duration: 1, word: 'King' },
-                    { topNote: 12, bottomNote: 7, duration: 1, word: 'of' },
-                    { topNote: 9, bottomNote: 5, duration: 1.5, word: 'an-' },
-                    { topNote: 7, bottomNote: '-', duration: 0.5, word: '-' },
-                    { topNote: 5, bottomNote: '-', duration: 1, word: 'gels;', lineBreak: true },
-                    // "Oh, come, let us adore him;"
-                    { topNote: 10, bottomNote: 5, duration: 1, word: 'Oh,' },
-                    { topNote: 10, bottomNote: 5, duration: 1, word: 'come,' },
-                    { topNote: 9, bottomNote: 5, duration: 1, word: 'let' },
-                    { topNote: 10, bottomNote: 5, duration: 1, word: 'us' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'a-' },
-                    { topNote: 10, bottomNote: 5, duration: 2, word: 'dore' },
-                    { topNote: 5, bottomNote: "-", duration: 1, word: 'him;', lineBreak: true  },
-                    // "Oh, come, let us adore him;"
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'Oh,'},                    
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'come,' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'let' },
-                    { topNote: 14, bottomNote: 5, duration: 1, word: 'us' },
-                    { topNote: 15, bottomNote: 9, duration: 1, word: 'a-' },
-                    { topNote: 14, bottomNote: 10, duration: 2, word: 'dore' },
-                    { topNote: 12, bottomNote: 9, duration: 1, word: 'him;', lineBreak: true  },
-                    // "Oh, come, let us adore him;"
-                    { topNote: 14, bottomNote: 10, duration: 1, word: 'Oh,' },
-                    { topNote: 15, bottomNote: 7, duration: 0.5, word: 'come,' },
-                    { topNote: '-', bottomNote: 9, duration: 0.5, word: '-'},                    
-                    { topNote: 14, bottomNote: 10, duration: 1, word: 'let' },
-                    { topNote: 12, bottomNote: 5, duration: 1, word: 'us' },
-                    { topNote: 10, bottomNote: 4, duration: 1, word: 'a-' },
-                    { topNote: 9, bottomNote: 5, duration: 2, word: 'dore' },
-                    { topNote: 10, bottomNote: 5, duration: 1, word: 'him,' },
-                    { topNote: 15, bottomNote: 7, duration: 1, word: '-', lineBreak: true   },
-                    // "Christ the Lord."
-                    { topNote: 14, bottomNote: 5, duration: 2, word: 'Christ' },
-                    { topNote: 12, bottomNote: 3, duration: 1.5, word: '-' },
-                    { topNote: 10, bottomNote: 2, duration: 0.5, word: 'the' },
-                    { topNote: 10, bottomNote: 2, duration: 4, word: 'Lord.' },
-                    
-                ]
-            },
-             "Jingle Bells": {
-                timeSignature: 4,
-                defaultBPM: 100,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
-                    {topNote:3,bottomNote:'-',duration:1,word:'Da-'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'shing'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'through'},
-                    {topNote:8,bottomNote:'-',duration:1,word:'the'},
-                    {topNote:3,bottomNote:'-',duration:3,word:'snow'},
-                    {topNote:3,bottomNote:'-',duration:0.5,word:'In'},
-                    {topNote:3,bottomNote:'-',duration:0.5,word:'a'},
-                    {topNote:3,bottomNote:'-',duration:1,word:'one'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'horse'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'op-'},
-                    {topNote:8,bottomNote:'-',duration:1,word:'en'},
-                    {topNote:5,bottomNote:'-',duration:4,word:'sleigh'},
-                    {topNote:5,bottomNote:'-',duration:1,word:'o er'},
-                    {topNote:13,bottomNote:'-',duration:1,word:'the'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'fields'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'we'},
-                    {topNote:7,bottomNote:'-',duration:4,word:'go'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'lau-'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'ghing'},
-                    {topNote:13,bottomNote:'-',duration:1,word:'all'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'the'},
-                    {topNote:12,bottomNote:'-',duration:4,word:'way'},
-                    {topNote:3,bottomNote:'-',duration:1,word:'bells'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'on'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'bob-'},
-                    {topNote:8,bottomNote:'-',duration:1,word:'tails'},
-                    {topNote:3,bottomNote:'-',duration:4,word:'ring'},
-                    {topNote:3,bottomNote:'-',duration:1,word:'ma-'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'king'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'spi-'},
-                    {topNote:8,bottomNote:'-',duration:1,word:'rits'},
-                    {topNote:5,bottomNote:'-',duration:3,word:'bright'},
-                    {topNote:5,bottomNote:'-',duration:1,word:'what'},
-                    {topNote:5,bottomNote:'-',duration:1,word:'fun'},
-                    {topNote:13,bottomNote:'-',duration:1,word:'it'},
-                    {topNote:12,bottomNote:'-',duration:1,word:'is'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'to'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'ride'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'and'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'sing'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'a'},
-                    {topNote:17,bottomNote:'-',duration:1,word:'slei-'},
-                    {topNote:15,bottomNote:'-',duration:1,word:'ghing'},
-                    {topNote:13,bottomNote:'-',duration:1,word:'song'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'to-'},
-                    {topNote:8,bottomNote:'-',duration:2,word:'night'},
-                    {topNote:15,bottomNote:'-',duration:2,word:'oh'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:12,bottomNote:8,duration:1,word:'gle'},
-                    {topNote:12,bottomNote:8,duration:2,word:'bells'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:12,bottomNote:8,duration:1,word:'gle'},
-                    {topNote:12,bottomNote:8,duration:2,word:'bells'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:15,bottomNote:12,duration:1,word:'gle'},
-                    {topNote:8,bottomNote:3,duration:1.5,word:'all'},
-                    {topNote:10,bottomNote:7,duration:0.5,word:'the'},
-                    {topNote:12,bottomNote:8,duration:4,word:'way'},
-                    {topNote:13,bottomNote:10,duration:1,word:'oh'},
-                    {topNote:13,bottomNote:10,duration:1,word:'what'},
-                    {topNote:13,bottomNote:10,duration:1.5,word:'fun'},
-                    {topNote:13,bottomNote:10,duration:0.5,word:'it'},
-                    {topNote:13,bottomNote:10,duration:1,word:'is'},
-                    {topNote:12,bottomNote:8,duration:1,word:'to'},
-                    {topNote:12,bottomNote:8,duration:1,word:'ride'},
-                    {topNote:12,bottomNote:8,duration:0.5,word:'in'},
-                    {topNote:12,bottomNote:8,duration:0.5,word:'a'},
-                    {topNote:12,bottomNote:8,duration:1,word:'one'},
-                    {topNote:10,bottomNote:7,duration:1,word:'horse'},
-                    {topNote:10,bottomNote:7,duration:1,word:'op-'},
-                    {topNote:12,bottomNote:8,duration:1,word:'en'},
-                    {topNote:10,bottomNote:7,duration:2,word:'sleigh'},
-                    {topNote:15,bottomNote:'-',duration:2,word:'hey'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:12,bottomNote:8,duration:1,word:'gle'},
-                    {topNote:12,bottomNote:8,duration:2,word:'bells'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:12,bottomNote:8,duration:1,word:'gle'},
-                    {topNote:12,bottomNote:8,duration:2,word:'bells'},
-                    {topNote:12,bottomNote:8,duration:1,word:'jin-'},
-                    {topNote:15,bottomNote:12,duration:1,word:'gle'},
-                    {topNote:8,bottomNote:5,duration:1.5,word:'all'},
-                    {topNote:10,bottomNote:7,duration:0.5,word:'the'},
-                    {topNote:12,bottomNote:8,duration:4,word:'way'},
-                    {topNote:13,bottomNote:10,duration:1,word:'oh'},
-                    {topNote:13,bottomNote:10,duration:1,word:'what'},
-                    {topNote:13,bottomNote:10,duration:1.5,word:'fun'},
-                    {topNote:13,bottomNote:10,duration:0.5,word:'it'},
-                    {topNote:13,bottomNote:10,duration:1,word:'is'},
-                    {topNote:12,bottomNote:8,duration:1,word:'to'},
-                    {topNote:12,bottomNote:8,duration:1,word:'ride'},
-                    {topNote:12,bottomNote:8,duration:0.5,word:'in'},
-                    {topNote:12,bottomNote:8,duration:0.5,word:'a'},
-                    {topNote:15,bottomNote:7,duration:1,word:'one'},
-                    {topNote:15,bottomNote:7,duration:1,word:'horse'},
-                    {topNote:13,bottomNote:7,duration:1,word:'o-'},
-                    {topNote:10,bottomNote:7,duration:1,word:'pen'},
-                    {topNote:8,bottomNote:'-',duration:4,word:'sleigh'},
-                    ]
-             },
-             "I heard the bells": {
-                timeSignature: 4,
-                defaultBPM: 80,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote:6,bottomNote:'-',duration:1,word:'I', lineBreak: true },
-                    {topNote:10,bottomNote:6,duration:1.5,word:'heard'},
-                    {topNote:9,bottomNote:8,duration:0.5,word:'the'},
-                    {topNote:10,bottomNote:6,duration:1,word:'bells'},
-                    {topNote:10,bottomNote:4,duration:1,word:'on'},
-                    {topNote:11,bottomNote:5,duration:1.5,word:'Christ-'},
-                    {topNote:10,bottomNote:5,duration:0.5,word:'mas'},
-                    {topNote:11,bottomNote:5,duration:1,word:'day'},
-                    {topNote:12,bottomNote:6,duration:1,word:'Their'},
-                    {topNote:13,bottomNote:6,duration:1,word:'old'},
-                    {topNote:10,bottomNote:'-',duration:1,word:'fa-'},
-                    {topNote:17,bottomNote:10,duration:1,word:'mil-'},
-                    {topNote:15,bottomNote:6,duration:1,word:'iar'},
-                    {topNote:15,bottomNote:8,duration:1.5,word:'car-'},
-                    {topNote:13,bottomNote:8,duration:0.5,word:'ols'},
-                    {topNote:13,bottomNote:8,duration:1,word:'play'},
-                    {topNote:13,bottomNote:6,duration:1,word:'And'},
-                    {topNote:13,bottomNote:6,duration:1.5,word:'wild'},
-                    {topNote:11,bottomNote:6,duration:0.5,word:'and'},
-                    {topNote:10,bottomNote:6,duration:1,word:'sweet'},
-                    {topNote:11,bottomNote:1,duration:1,word:'the'},
-                    {topNote:10,bottomNote:2,duration:1.5,word:'words'},
-                    {topNote:8,bottomNote:2,duration:0.5,word:'re-'},
-                    {topNote:6,bottomNote:3,duration:1,word:'peat'},
-                    {topNote:8,bottomNote:6,duration:1,word:'Of'},
-                    {topNote:10,bottomNote:6,duration:1,word:'peace'},
-                    {topNote:11,bottomNote:6,duration:1,word:'on'},
-                    {topNote:13,bottomNote:6,duration:1,word:'earth'},
-                    {topNote:15,bottomNote:6,duration:1,word:'good'},
-                    {topNote:5,bottomNote:'-',duration:1.5,word:'will'},
-                    {topNote:8,bottomNote:5,duration:0.5,word:'to'},
-                    {topNote:6,bottomNote:'-',duration:1,word:'men'},
-                    ]
-             },
-            "Away in a manger (1)": {
-                timeSignature: 3,
-                defaultBPM: 85,
-                notes: [
-                    // Count off
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    { topNote: '-', bottomNote: '-', duration: 1 },
-                    {topNote:17,bottomNote:14,duration:1,word:'A-', lineBreak: true },
-                    {topNote:17,bottomNote:14,duration:1.5,word:'way'},
-                    {topNote:15,bottomNote:12,duration:0.5,word:'in'},
-                    {topNote:14,bottomNote:10,duration:1,word:'a'},
-                    {topNote:14,bottomNote:10,duration:1,word:'man-'},
-                    {topNote:12,bottomNote:5,duration:1,word:'ger'},
-                    {topNote:10,bottomNote:5,duration:1,word:'no'},
-                    {topNote:10,bottomNote:7,duration:1,word:'crib'},
-                    {topNote:9,bottomNote:5,duration:1,word:'for'},
-                    {topNote:7,bottomNote:3,duration:1,word:'his'},
-                    {topNote:5,bottomNote:2,duration:2,word:'bed'},
-                    {topNote:5,bottomNote:2,duration:1,word:'The'},
-                    {topNote:5,bottomNote:3,duration:1.5,word:'lit-'},
-                    {topNote:7,bottomNote:3,duration:0.5,word:'tle'},
-                    {topNote:5,bottomNote:3,duration:1,word:'Lord'},
-                    {topNote:5,bottomNote:3,duration:1,word:'Je-'},
-                    {topNote:12,bottomNote:3,duration:1,word:'sus'},
-                    {topNote:9,bottomNote:3,duration:1,word:'laid'},
-                    {topNote:7,bottomNote:3,duration:1,word:'down'},
-                    {topNote:5,bottomNote:2,duration:1,word:'his'},
-                    {topNote:10,bottomNote:5,duration:1,word:'sweet'},
-                    {topNote:14,bottomNote:10,duration:2,word:'head'},
-                    {topNote:17,bottomNote:14,duration:1,word:'The'},
-                    {topNote:17,bottomNote:14,duration:1.5,word:'stars'},
-                    {topNote:15,bottomNote:12,duration:0.5,word:'in'},
-                    {topNote:14,bottomNote:10,duration:1,word:'The'},
-                    {topNote:14,bottomNote:10,duration:1,word:'hea-'},
-                    {topNote:12,bottomNote:5,duration:1,word:'ven'},
-                    {topNote:10,bottomNote:5,duration:1,word:'looked'},
-                    {topNote:10,bottomNote:7,duration:1,word:'down'},
-                    {topNote:9,bottomNote:5,duration:1,word:'where'},
-                    {topNote:7,bottomNote:3,duration:1,word:'he'},
-                    {topNote:5,bottomNote:2,duration:2,word:'lay'},
-                    {topNote:5,bottomNote:2,duration:1,word:'The'},
-                    {topNote:15,bottomNote:9,duration:1.5,word:'li-'},
-                    {topNote:14,bottomNote:9,duration:0.5,word:'tle'},
-                    {topNote:12,bottomNote:9,duration:1,word:'Lord'},
-                    {topNote:14,bottomNote:10,duration:1,word:'Je-'},
-                    {topNote:12,bottomNote:5,duration:1,word:'sus'},
-                    {topNote:10,bottomNote:5,duration:1,word:'a-'},
-                    {topNote:12,bottomNote:7,duration:1,word:'sleep'},
-                    {topNote:7,bottomNote:3,duration:1,word:'on'},
-                    {topNote:9,bottomNote:3,duration:1,word:'the'},
-                    {topNote:10,bottomNote:2,duration:2,word:'hay'},
-                    ]
-            }
-        };
+        let displayMode = 'bells'; // 'bells', 'sharps', or 'flats'
+        let maxNotesPerBeat = 2; // Will be calculated dynamically per song
+       
 
         // Audio setup
         let audioContext = null;
-        
+
         // Bell frequencies (chromatic scale starting from low B♭)
         const bellFrequencies = {
             1: 233.08,  // B♭3
@@ -850,34 +368,34 @@
             18: 622.25, // D#5/E♭5
             19: 659.25  // E5
         };
-        
+
         function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
-        
+
         function playBellNote(bellNumber, duration = 0.5) {
             if (bellNumber === '-' || !bellFrequencies[bellNumber]) return;
-            
+
             initAudioContext();
-            
+
             const now = audioContext.currentTime;
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
+
             // Bell-like sound using sine wave with attack and decay
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(bellFrequencies[bellNumber], now);
-            
+
             // Sharp attack, exponential decay (bell envelope)
             gainNode.gain.setValueAtTime(0, now);
             gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Fast attack
             gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-            
+
             oscillator.start(now);
             oscillator.stop(now + duration);
         }
@@ -921,15 +439,26 @@
             const bellsSet = new Set();
 
             currentSong.notes.forEach((noteData) => {
-                if (noteData.topNote !== '-') {
-                    bellsSet.add(noteData.topNote);
-                }
-                if (noteData.bottomNote !== '-') {
-                    bellsSet.add(noteData.bottomNote);
-                }
+                const notes = noteData.notes || [noteData.topNote, noteData.bottomNote]; // Support old format
+                notes.forEach(bell => {
+                    if (bell !== '-') {
+                        bellsSet.add(bell);
+                    }
+                });
             });
 
             return Array.from(bellsSet).sort((a, b) => a - b);
+        }
+
+        // Calculate max number of simultaneous notes in current song
+        function calculateMaxNotesPerBeat() {
+            let max = 0;
+            currentSong.notes.forEach((noteData) => {
+                const notes = noteData.notes || [noteData.topNote, noteData.bottomNote]; // Support old format
+                const count = notes.filter(n => n !== '-').length;
+                if (count > max) max = count;
+            });
+            return max;
         }
 
         // Calculate cumulative times for each note
@@ -980,45 +509,34 @@
                 const musicLine = document.createElement('div');
                 musicLine.className = 'music-line';
 
-                // Row 1 (top notes)
-                const row1 = document.createElement('div');
-                row1.className = 'note-row';
-                line.notes.forEach(noteData => {
-                    const noteElem = document.createElement('span');
-                    noteElem.className = 'note' + (noteData.topNote === '-' ? ' dash' : '');
-                    const bellNum = noteData.topNote;
-                    if (displayMode === 'bells' || bellNum === '-') {
-                        noteElem.textContent = bellNum;
-                    } else if (displayMode === 'sharps') {
-                        noteElem.textContent = bellToNoteSharps[bellNum];
-                    } else {
-                        noteElem.textContent = bellToNoteFlats[bellNum];
-                    }
-                    noteElem.dataset.index = noteData.index;
-                    noteElem.dataset.row = '1';
-                    row1.appendChild(noteElem);
-                    noteElements.push({ elem: noteElem, index: noteData.index, row: 1, lineIndex: lineIndex });
-                });
-
-                // Row 2 (bottom notes)
-                const row2 = document.createElement('div');
-                row2.className = 'note-row';
-                line.notes.forEach(noteData => {
-                    const noteElem = document.createElement('span');
-                    noteElem.className = 'note' + (noteData.bottomNote === '-' ? ' dash' : '');
-                    const bellNum = noteData.bottomNote;
-                    if (displayMode === 'bells' || bellNum === '-') {
-                        noteElem.textContent = bellNum;
-                    } else if (displayMode === 'sharps') {
-                        noteElem.textContent = bellToNoteSharps[bellNum];
-                    } else {
-                        noteElem.textContent = bellToNoteFlats[bellNum];
-                    }
-                    noteElem.dataset.index = noteData.index;
-                    noteElem.dataset.row = '2';
-                    row2.appendChild(noteElem);
-                    noteElements.push({ elem: noteElem, index: noteData.index, row: 2, lineIndex: lineIndex });
-                });
+                // Create rows dynamically based on maxNotesPerBeat
+                for (let rowNum = 0; rowNum < maxNotesPerBeat; rowNum++) {
+                    const row = document.createElement('div');
+                    row.className = 'note-row';
+                    
+                    line.notes.forEach(noteData => {
+                        const notes = noteData.notes || [noteData.topNote, noteData.bottomNote]; // Support old format
+                        const bellNum = notes[rowNum] || '-';
+                        
+                        const noteElem = document.createElement('span');
+                        noteElem.className = 'note' + (bellNum === '-' ? ' dash' : '');
+                        
+                        if (displayMode === 'bells' || bellNum === '-') {
+                            noteElem.textContent = bellNum;
+                        } else if (displayMode === 'sharps') {
+                            noteElem.textContent = bellToNoteSharps[bellNum];
+                        } else {
+                            noteElem.textContent = bellToNoteFlats[bellNum];
+                        }
+                        
+                        noteElem.dataset.index = noteData.index;
+                        noteElem.dataset.row = String(rowNum + 1);
+                        row.appendChild(noteElem);
+                        noteElements.push({ elem: noteElem, index: noteData.index, row: rowNum + 1, lineIndex: lineIndex });
+                    });
+                    
+                    musicLine.appendChild(row);
+                }
 
                 // Words row
                 const wordRow = document.createElement('div');
@@ -1031,8 +549,6 @@
                     wordRow.appendChild(wordElem);
                 });
 
-                musicLine.appendChild(row1);
-                musicLine.appendChild(row2);
                 musicLine.appendChild(wordRow);
                 notesContainer.appendChild(musicLine);
             });
@@ -1078,22 +594,22 @@
             if (noteIdx !== currentNoteIndex) {
                 updateActiveNote(noteIdx);
                 currentNoteIndex = noteIdx;
-                
+
                 // Play the note sounds
                 const noteData = currentSong.notes[noteIdx];
                 if (noteData) {
                     const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
                     const beatDuration = 60 / bpm;
                     const noteDurationSeconds = (noteData.duration || 1) * beatDuration;
-                    
-                    if (noteData.topNote && noteData.topNote !== '-') {
-                        playBellNote(noteData.topNote, noteDurationSeconds);
-                    }
-                    if (noteData.bottomNote && noteData.bottomNote !== '-') {
-                        playBellNote(noteData.bottomNote, noteDurationSeconds);
-                    }
+
+                    const notes = noteData.notes || [noteData.topNote, noteData.bottomNote]; // Support old format
+                    notes.forEach(bell => {
+                        if (bell && bell !== '-') {
+                            playBellNote(bell, noteDurationSeconds);
+                        }
+                    });
                 }
-            }
+            }            
 
             // Animate ball between current and next note
             const currentNoteTime = noteTimes[noteIdx];
@@ -1240,6 +756,9 @@
             playPauseBtn.textContent = '▶ Play';
             speedControl.value = currentSong.defaultBPM;
             bouncingBall.style.display = 'none';
+
+            // Calculate max notes per beat for this song
+            maxNotesPerBeat = calculateMaxNotesPerBeat();
 
             // Display required bells
             const requiredBells = calculateRequiredBells();
@@ -1408,17 +927,4 @@
     </script>
 </body>
 
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
