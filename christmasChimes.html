@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,11 +32,23 @@
             border-bottom: 3px solid #8B0000;
         }
 
-        h1 {
-            color: #FFD700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin: 0;
-            font-size: 2em;
+.note-display-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #FFD700;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .note-display-control select {
+        padding: 8px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 2px solid #FFD700;
+        background: #fff;
+        cursor: pointer;
+        font-weight: bold;
         }
 
         .song-selector {
@@ -83,21 +96,21 @@
             scroll-behavior: auto;
             min-height: 0;
         }
-        
+
         .display-container::-webkit-scrollbar {
             width: 12px;
         }
-        
+
         .display-container::-webkit-scrollbar-track {
             background: rgba(139, 0, 0, 0.3);
             border-radius: 6px;
         }
-        
+
         .display-container::-webkit-scrollbar-thumb {
             background: rgba(255, 215, 0, 0.6);
             border-radius: 6px;
         }
-        
+
         .display-container::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 215, 0, 0.8);
         }
@@ -117,7 +130,8 @@
         .notes-container {
             position: relative;
             padding: 100px 40px;
-            padding-bottom: calc(100vh - 270px); /* Ensure bottom padding for last line to scroll to ball position (190px + 80px) */
+            padding-bottom: calc(100vh - 270px);
+            /* Ensure bottom padding for last line to scroll to ball position (190px + 80px) */
             min-height: 100%;
         }
 
@@ -260,19 +274,28 @@
             h1 {
                 font-size: 1.8em;
             }
-            
+
             .note-row {
                 font-size: 36px;
             }
-            
+
             .controls {
                 flex-direction: column;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
+        <div class="note-display-control">
+            <label for="noteDisplaySelect">Display:</label>
+            <select id="noteDisplaySelect">
+                <option value="bells">Bells</option>
+                <option value="sharps">Sharps</option>
+                <option value="flats">Flats</option>
+            </select>
+        </div>
         <h1>🎄 Christmas Chimes Player 🔔</h1>
         <div class="song-selector">
             <select id="songSelect">
@@ -296,7 +319,7 @@
         <button id="playPauseBtn" class="play-pause">▶ Play</button>
         <button id="nextBtn" title="Next Note">⏩ Forward</button>
         <button id="endBtn" title="Jump to End">⏭ End</button>
-        
+
         <div class="control-group">
             <label for="speedControl">Speed (BPM):</label>
             <input type="number" id="speedControl" min="40" max="200" value="90" step="5">
@@ -304,125 +327,355 @@
     </div>
 
     <script>
-        // Song database - Each note has topNote, bottomNote, duration, and optional word/lineBreak
+        // Bell-to-Note Mapping (Chromatic scale from low B♭ to high E)
+        // 1=B♭, 2=B, 3=C, 4=C#/D♭, 5=D, 6=D#/E♭, 7=E, 8=F, 9=F#/G♭, 10=G, 11=G#/A♭, 12=A, 13=A#/B♭, 14=B, 15=C, 16=C#/D♭, 17=D, 18=D#/E♭, 19=E
+        const bellToNoteFlats = {
+            1: 'B♭', 2: 'B', 3: 'C', 4: 'D♭', 5: 'D', 6: 'E♭', 7: 'E', 8: 'F', 9: 'G♭', 10: 'G',
+            11: 'A♭', 12: 'A', 13: 'B♭', 14: 'B', 15: 'C', 16: 'D♭', 17: 'D', 18: 'E♭', 19: 'E'
+        };
+        
+        const bellToNoteSharps = {
+            1: 'B♭', 2: 'B', 3: 'C', 4: 'C#', 5: 'D', 6: 'D#', 7: 'E', 8: 'F', 9: 'F#', 10: 'G',
+            11: 'G#', 12: 'A', 13: 'A#', 14: 'B', 15: 'C', 16: 'C#', 17: 'D', 18: 'D#', 19: 'E'
+        };
+        
+        let displayMode = 'bells'; // 'bells', 'sharps', or 'flats'
         // Use '-' for topNote or bottomNote when only one bell plays
         // Duration in beats: 0.5 = eighth note, 1 = quarter note, 2 = half note, 3 = dotted half, 4 = whole note
         // Add lineBreak: true to force a new line after this note (otherwise auto-breaks at 8 beats)
         const songs = {
             "Angels We Have Heard on High": {
                 timeSignature: 4,
-                defaultBPM: 100,
+                defaultBPM: 90,
                 notes: [
                     // Count off
-                    {topNote: '-', bottomNote: '-', duration: 1},
-                    {topNote: '-', bottomNote: '-', duration: 1},
-                    {topNote: '-', bottomNote: '-', duration: 1},
-                    {topNote: '-', bottomNote: '-', duration: 1, lineBreak: true},
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
                     // "Angels we have heard on high"
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'An-'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'gels'},
-                    {topNote: 10, bottomNote: 5, duration: 1, word: 'we'},
-                    {topNote: 13, bottomNote: 5, duration: 1, word: 'have'},
-                    {topNote: 13, bottomNote: 8, duration: 1, word: 'heard'},
-                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: "-", duration: 0.5, word: 'on'},
-                    {topNote: 10, bottomNote: 6, duration: 2, word: 'high', lineBreak: true},
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'An-' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'gels' },
+                    { topNote: 12, bottomNote: 7, duration: 1, word: 'we' },
+                    { topNote: 15, bottomNote: 7, duration: 1, word: 'have' },
+                    { topNote: 15, bottomNote: 10, duration: 1, word: 'heard' },
+                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: "-", duration: 0.5, word: 'on' },
+                    { topNote: 12, bottomNote: 8, duration: 2, word: 'high', lineBreak: true },
                     // "Sweetly singing o'er the plains"
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'Sweet-'},
-                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ly'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'sing'},
-                    {topNote: 13, bottomNote: 6, duration: 1, word: 'ing'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: "o'er"},
-                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: "-", duration: 0.5, word: 'the'},
-                    {topNote: 6, bottomNote: "-", duration: 2, word: 'plains', lineBreak: true},
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'Sweet-' },
+                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ly' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'sing' },
+                    { topNote: 15, bottomNote: 8, duration: 1, word: 'ing' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: "o'er" },
+                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: "-", duration: 0.5, word: 'the' },
+                    { topNote: 8, bottomNote: "-", duration: 2, word: 'plains', lineBreak: true },
                     // "And the mountains in reply"
-                   {topNote: 10, bottomNote: 6, duration: 1, word: 'And-'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'the'},
-                    {topNote: 10, bottomNote: 5, duration: 1, word: 'moun-'},
-                    {topNote: 13, bottomNote: 5, duration: 1, word: 'tains'},
-                    {topNote: 13, bottomNote: 8, duration: 1, word: 'in'},
-                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: "-", duration: 0.5, word: 're-'},
-                    {topNote: 10, bottomNote: 6, duration: 2, word: 'ply', lineBreak: true},
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'And-' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'the' },
+                    { topNote: 12, bottomNote: 7, duration: 1, word: 'moun-' },
+                    { topNote: 15, bottomNote: 7, duration: 1, word: 'tains' },
+                    { topNote: 15, bottomNote: 10, duration: 1, word: 'in' },
+                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: "-", duration: 0.5, word: 're-' },
+                    { topNote: 12, bottomNote: 8, duration: 2, word: 'ply', lineBreak: true },
                     // "Echoing their joyous strains"
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'Ech-'},
-                    {topNote: 8, bottomNote: 5, duration: 1, word: 'o-'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'ing'},
-                    {topNote: 13, bottomNote: 6, duration: 1, word: 'their'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'joy'},
-                    {topNote: "-", bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: "-", duration: 0.5, word: 'ous'},
-                    {topNote: 6, bottomNote: "-", duration: 2, word: 'strains', lineBreak: true},
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'Ech-' },
+                    { topNote: 10, bottomNote: 7, duration: 1, word: 'o-' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'ing' },
+                    { topNote: 15, bottomNote: 8, duration: 1, word: 'their' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'joy' },
+                    { topNote: "-", bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: "-", duration: 0.5, word: 'ous' },
+                    { topNote: 8, bottomNote: "-", duration: 2, word: 'strains', lineBreak: true },
                     // "Gloria" - fast runs
-                    {topNote: 13, bottomNote: 6, duration: 1, word: 'Glo'},
-                    {topNote: '-', bottomNote: 10, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
-                    {topNote: 15, bottomNote: 6, duration: 0.5, word: '-'},
-                    {topNote: 13, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 12, bottomNote: 6, duration: 1, word: '-'},
-                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-', lineBreak: true},
-                    {topNote: 13, bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: 5, duration: 1, word: '-'},
-                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 5, duration: 0.5, word: '-', lineBreak: true},
-                    {topNote: 11, bottomNote: 3, duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 6, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: 1, duration: 1.5, word: '-'},
-                    {topNote: 13, bottomNote: '-', duration: 0.5, word: 'ri-'},
-                    {topNote: 13, bottomNote: '-', duration: 2, word: 'a', lineBreak: true},
+                    { topNote: 15, bottomNote: 8, duration: 1, word: 'Glo' },
+                    { topNote: '-', bottomNote: 12, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
+                    { topNote: 17, bottomNote: 8, duration: 0.5, word: '-' },
+                    { topNote: 15, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 14, bottomNote: 8, duration: 1, word: '-' },
+                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-', lineBreak: true },
+                    { topNote: 15, bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: 7, duration: 1, word: '-' },
+                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 7, duration: 0.5, word: '-', lineBreak: true },
+                    { topNote: 13, bottomNote: 5, duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 8, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: 3, duration: 1.5, word: '-' },
+                    { topNote: 5, bottomNote: '-', duration: 0.5, word: 'ri-' },
+                    { topNote: 5, bottomNote: '-', duration: 2, word: 'a', lineBreak: true },
                     // "in excelsis Deo"
-                    {topNote: 6, bottomNote: 1, duration: 1, word: 'in'},
-                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ex'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'cel'},
-                    {topNote: 11, bottomNote: 6, duration: 1, word: 'sis'},
-                    {topNote: 10, bottomNote: 6, duration: 2, word: 'De'},
-                    {topNote: 8, bottomNote: 5, duration: 2, word: 'o', lineBreak: true},
+                    { topNote: 8, bottomNote: 3, duration: 1, word: 'in' },
+                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ex' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'cel' },
+                    { topNote: 13, bottomNote: 8, duration: 1, word: 'sis' },
+                    { topNote: 12, bottomNote: 8, duration: 2, word: 'De' },
+                    { topNote: 10, bottomNote: 7, duration: 2, word: 'o', lineBreak: true },
                     // Second "Gloria"
-                    {topNote: 13, bottomNote: 6, duration: 1, word: 'Glo'},
-                    {topNote: '-', bottomNote: 10, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
-                    {topNote: 15, bottomNote: 6, duration: 0.5, word: '-'},
-                    {topNote: 13, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 12, bottomNote: 6, duration: 1, word: '-'},
-                    {topNote: '-', bottomNote: 8, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-', lineBreak: true},
-                    {topNote: 13, bottomNote: 5, duration: 0.5, word: '-'},
-                    {topNote: 11, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: 5, duration: 1, word: '-'},
-                    {topNote: '-', bottomNote: 6, duration: 0.5, word: '-'},
-                    {topNote: '-', bottomNote: 5, duration: 0.5, word: '-', lineBreak: true},
-                    {topNote: 11, bottomNote: 3, duration: 0.5, word: '-'},
-                    {topNote: 10, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 6, bottomNote: '-', duration: 0.5, word: '-'},
-                    {topNote: 8, bottomNote: 1, duration: 1.5, word: '-'},
-                    {topNote: 13, bottomNote: '-', duration: 0.5, word: 'ri-'},
-                    {topNote: 13, bottomNote: '-', duration: 2, word: 'a', lineBreak: true},
+                    { topNote: 15, bottomNote: 8, duration: 1, word: 'Glo' },
+                    { topNote: '-', bottomNote: 12, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
+                    { topNote: 17, bottomNote: 8, duration: 0.5, word: '-' },
+                    { topNote: 15, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 14, bottomNote: 8, duration: 1, word: '-' },
+                    { topNote: '-', bottomNote: 10, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-', lineBreak: true },
+                    { topNote: 15, bottomNote: 7, duration: 0.5, word: '-' },
+                    { topNote: 13, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: 7, duration: 1, word: '-' },
+                    { topNote: '-', bottomNote: 8, duration: 0.5, word: '-' },
+                    { topNote: '-', bottomNote: 7, duration: 0.5, word: '-', lineBreak: true },
+                    { topNote: 13, bottomNote: 5, duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 8, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: 3, duration: 1.5, word: '-' },
+                    { topNote: 5, bottomNote: '-', duration: 0.5, word: 'ri-' },
+                    { topNote: 5, bottomNote: '-', duration: 2, word: 'a', lineBreak: true },
                     // Final "in excelsis Deo"
-                    {topNote: 6, bottomNote: 1, duration: 1, word: 'in'},
-                    {topNote: 8, bottomNote: 5, duration: 1, word: 'ex'},
-                    {topNote: 10, bottomNote: 6, duration: 1, word: 'cel'},
-                    {topNote: 11, bottomNote: 6, duration: 1, word: 'sis'},
-                    {topNote: 10, bottomNote: 6, duration: 2, word: 'De'},
-                    {topNote: 8, bottomNote: 5, duration: 2, word: '-'},
-                    {topNote: 6, bottomNote: 1, duration: 4, word: 'o'},
-                    {topNote: "-", bottomNote: "-", duration: 4, word: '-'},
+                    { topNote: 8, bottomNote: 3, duration: 1, word: 'in' },
+                    { topNote: 10, bottomNote: 7, duration: 1, word: 'ex' },
+                    { topNote: 12, bottomNote: 8, duration: 1, word: 'cel' },
+                    { topNote: 13, bottomNote: 8, duration: 1, word: 'sis' },
+                    { topNote: 12, bottomNote: 8, duration: 2, word: 'De' },
+                    { topNote: 10, bottomNote: 7, duration: 2, word: '-' },
+                    { topNote: 8, bottomNote: 3, duration: 4, word: 'o' },
+                    { topNote: "-", bottomNote: "-", duration: 4, word: '-' },
+                ]
+            },
+            "Joy to the world": {
+                timeSignature: 2,
+                defaultBPM: 75,
+                notes: [
+                    // Count off
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
+                    // "Joy to the world, the Lord is come"
+                    { topNote: 17, bottomNote: 9, duration: 1, word: 'Joy' },
+                    { topNote: 16, bottomNote: 12, duration: 0.75, word: 'to' },
+                    { topNote: 14, bottomNote: 10, duration: 0.25, word: 'the' },
+                    { topNote: 12, bottomNote: 9, duration: 1.5, word: 'world,' },
+                    { topNote: 10, bottomNote: 7, duration: 0.5, word: 'the' },
+                    { topNote: 9, bottomNote: 5, duration: 1, word: 'Lord' },
+                    { topNote: 7, bottomNote: 3, duration: 1, word: 'is' },
+                    { topNote: 17, bottomNote: '-', duration: 1.5, word: 'come;', lineBreak: true },
+                    // "Let earth receive her King!"
+                    { topNote: 12, bottomNote: '-', duration: 0.5, word: 'Let' },
+                    { topNote: 14, bottomNote: 10, duration: 1.5, word: 'earth' },
+                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 're-' },
+                    { topNote: 16, bottomNote: 7, duration: 1.5, word: 'ceive' },
+                    { topNote: 16, bottomNote: 10, duration: 0.5, word: 'her' },
+                    { topNote: 17, bottomNote: 9, duration: 2, word: 'king!', lineBreak: true },
+                    // "Let ev'ry heart prepare him room"
+                    { topNote: '-', bottomNote: '-', duration: 1.5, word: '-' },
+                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'Let' },
+                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'ev-' },
+                    { topNote: 16, bottomNote: 12, duration: 0.5, word: '-' },
+                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 'ry' },
+                    { topNote: 12, bottomNote: 9, duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'hea-' },
+                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-rt' },
+                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'pre-' },
+                    { topNote: 17, bottomNote: 9, duration: 0.5, word: 'pare' },
+                    { topNote: 16, bottomNote: 12, duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: 10, duration: 0.5, word: 'him' },
+                    { topNote: 12, bottomNote: 9, duration: 0.5, word: '-' },
+                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'room' },
+                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'And', lineBreak: true },
+                    // "And Saints and angels sing"
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'Saints' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'and' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: 'an-' },
+                    { topNote: 9, bottomNote: 5, duration: 0.25, word: 'gels' },
+                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
+                    { topNote: 12, bottomNote: 9, duration: 1.5, word: 'sing' },
+                    { topNote: 10, bottomNote: 7, duration: 0.25, word: 'And' },
+                    { topNote: 9, bottomNote: 5, duration: 0.25, word: '-' },
+                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'Saints' },
+                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'and' },
+                    { topNote: 7, bottomNote: 4, duration: 0.5, word: 'an-' },
+                    { topNote: 7, bottomNote: 4, duration: 0.25, word: 'gels' },
+                    { topNote: 9, bottomNote: 5, duration: 0.25, word: '-' },
+                    { topNote: 10, bottomNote: 7, duration: 1.5, word: 'sing' },
+                    { topNote: 9, bottomNote: 5, duration: 0.25, word: 'And' },
+                    { topNote: 7, bottomNote: 4, duration: 0.25, word: '-', lineBreak: true },
+                    // "And Saints, and Saints and angels sing"
+                    { topNote: 17, bottomNote: '-', duration: 0.5, word: 'Saints' },
+                    { topNote: 17, bottomNote: 9, duration: 1, word: '-' },
+                    { topNote: 14, bottomNote: 10, duration: 0.5, word: 'and' },
+                    { topNote: 12, bottomNote: 9, duration: 0.75, word: 'Saints' },
+                    { topNote: 10, bottomNote: 7, duration: 0.25, word: '-' },
+                    { topNote: 9, bottomNote: 5, duration: 0.5, word: '-' },
+                    { topNote: 10, bottomNote: 7, duration: 0.5, word: 'and' },
+                    { topNote: 9, bottomNote: 5, duration: 1, word: 'an-' },
+                    { topNote: 7, bottomNote: 4, duration: 1, word: 'gels' },
+                    { topNote: 17, bottomNote: '-', duration: 2, word: 'sing' },
+                ]
+            },
+            "O Come All Ye Faithful": {
+                timeSignature: 4,
+                defaultBPM: 85,
+                notes: [
+                    // Count off
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1 },
+                    { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
+                    // "Oh come, all ye faithful"
+                    { topNote: 10, bottomNote: 5, duration: 1, word: 'Oh,'},                    
+                    { topNote: 10, bottomNote: 5, duration: 2, word: 'come,' },
+                    { topNote: 5, bottomNote: '-', duration: 1, word: 'all' },
+                    { topNote: 10, bottomNote: 2, duration: 1, word: 'ye' },
+                    { topNote: 12, bottomNote: 5, duration: 2, word: 'faith-' },
+                    { topNote: 5, bottomNote: "-", duration: 2, word: 'ful', lineBreak: true  },
+
+                    // "Joyful and triumphant!"
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'Joy-' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'ful'},
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'and' },
+                    { topNote: 15, bottomNote: 7, duration: 1, word: 'tri-' },
+                    { topNote: 14, bottomNote: 5, duration: 2, word: 'um-' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'phant!' , lineBreak: true },
+                    // "Oh come ye, Oh come ye to Bethlehem"
+                    { topNote: 10, bottomNote: 2, duration: 1, word: 'Oh,' },
+                    { topNote: 10, bottomNote: 2, duration: 1, word: 'come,' },
+                    { topNote: '-', bottomNote: 4, duration: 1, word: '-'},                    
+                    { topNote: 9, bottomNote: 5, duration: 1, word: 'ye,' },
+                    { topNote: 7, bottomNote: 4, duration: 1, word: 'Oh,' },
+                    { topNote: 9, bottomNote: 5, duration: 1, word: 'come,' },
+                    { topNote: 10, bottomNote: 5, duration: 1, word: '-' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'ye' },
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'to' },
+                    { topNote: 9, bottomNote: 5, duration: 2, word: 'Beth-'},
+                    { topNote: 7, bottomNote: 4, duration: 1.5, word: '-' },
+                    { topNote: 5, bottomNote: '-', duration: 0.5, word: 'le-' },
+                    { topNote: 5, bottomNote: '-', duration: 3, word: 'hem' },
+                    { topNote: '-', bottomNote: '-', duration: 1, word: '-', lineBreak: true },
+                    // "Come, and behold him"
+                    { topNote: 17, bottomNote: 5, duration: 2, word: 'Come,' },
+                    { topNote: 15, bottomNote: 7, duration: 0.5, word: 'and' },
+                    { topNote: '-', bottomNote: 9, duration: 0.5, word: '-' },
+                    { topNote: 14, bottomNote: 2, duration: 1, word: 'Beth-' },
+                    { topNote: 15, bottomNote: 7, duration: 1, word: 'hold' },
+                    { topNote: '-', bottomNote: 9, duration: 1, word: '-' },
+                    { topNote: 14, bottomNote: 10, duration: 2, word: 'him', lineBreak: true },
+                    // "Born the King of angels;"
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'Born' },
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'the' },
+                    { topNote: 10, bottomNote: 7, duration: 1, word: 'King' },
+                    { topNote: 12, bottomNote: 7, duration: 1, word: 'of' },
+                    { topNote: 9, bottomNote: 5, duration: 1.5, word: 'an-' },
+                    { topNote: 7, bottomNote: '-', duration: 0.5, word: '-' },
+                    { topNote: 5, bottomNote: '-', duration: 1, word: 'gels;', lineBreak: true },
+                    // "Oh, come, let us adore him;"
+                    { topNote: 10, bottomNote: 5, duration: 1, word: 'Oh,' },
+                    { topNote: 10, bottomNote: 5, duration: 1, word: 'come,' },
+                    { topNote: 9, bottomNote: 5, duration: 1, word: 'let' },
+                    { topNote: 10, bottomNote: 5, duration: 1, word: 'us' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'a-' },
+                    { topNote: 10, bottomNote: 5, duration: 2, word: 'dore' },
+                    { topNote: 5, bottomNote: "-", duration: 1, word: 'him;', lineBreak: true  },
+                    // "Oh, come, let us adore him;"
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'Oh,'},                    
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'come,' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'let' },
+                    { topNote: 14, bottomNote: 5, duration: 1, word: 'us' },
+                    { topNote: 15, bottomNote: 9, duration: 1, word: 'a-' },
+                    { topNote: 14, bottomNote: 10, duration: 2, word: 'dore' },
+                    { topNote: 12, bottomNote: 9, duration: 1, word: 'him;', lineBreak: true  },
+                    // "Oh, come, let us adore him;"
+                    { topNote: 14, bottomNote: 10, duration: 1, word: 'Oh,' },
+                    { topNote: 15, bottomNote: 7, duration: 0.5, word: 'come,' },
+                    { topNote: '-', bottomNote: 9, duration: 0.5, word: '-'},                    
+                    { topNote: 14, bottomNote: 10, duration: 1, word: 'let' },
+                    { topNote: 12, bottomNote: 5, duration: 1, word: 'us' },
+                    { topNote: 10, bottomNote: 4, duration: 1, word: 'a-' },
+                    { topNote: 9, bottomNote: 5, duration: 2, word: 'dore' },
+                    { topNote: 10, bottomNote: 5, duration: 1, word: 'him,' },
+                    { topNote: 15, bottomNote: 7, duration: 1, word: '-', lineBreak: true   },
+                    // "Christ the Lord."
+                    { topNote: 14, bottomNote: 5, duration: 2, word: 'Christ' },
+                    { topNote: 12, bottomNote: 3, duration: 1.5, word: '-' },
+                    { topNote: 10, bottomNote: 2, duration: 0.5, word: 'the' },
+                    { topNote: 10, bottomNote: 2, duration: 4, word: 'Lord.' },
                 ]
             }
         };
+
+        // Audio setup
+        let audioContext = null;
+        
+        // Bell frequencies (chromatic scale starting from low B♭)
+        const bellFrequencies = {
+            1: 233.08,  // B♭3
+            2: 246.94,  // B3
+            3: 261.63,  // C4
+            4: 277.18,  // C#4/D♭4
+            5: 293.66,  // D4
+            6: 311.13,  // D#4/E♭4
+            7: 329.63,  // E4
+            8: 349.23,  // F4
+            9: 369.99,  // F#4/G♭4
+            10: 392.00, // G4
+            11: 415.30, // G#4/A♭4
+            12: 440.00, // A4
+            13: 466.16, // A#4/B♭4
+            14: 493.88, // B4
+            15: 523.25, // C5
+            16: 554.37, // C#5/D♭5
+            17: 587.33, // D5
+            18: 622.25, // D#5/E♭5
+            19: 659.25  // E5
+        };
+        
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playBellNote(bellNumber, duration = 0.5) {
+            if (bellNumber === '-' || !bellFrequencies[bellNumber]) return;
+            
+            initAudioContext();
+            
+            const now = audioContext.currentTime;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Bell-like sound using sine wave with attack and decay
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(bellFrequencies[bellNumber], now);
+            
+            // Sharp attack, exponential decay (bell envelope)
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Fast attack
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+        }
 
         // Player state
         let currentSong = null;
@@ -436,7 +689,7 @@
         let totalBeats = 0;
         const BEATS_PER_LINE = 8; // Approximate 2 measures of 4/4 time
         let lastScrolledLineIndex = -1; // Track which line we last scrolled for
-        
+
         // Scroll animation state
         let scrollAnimationStart = null;
         let scrollAnimationDuration = 0;
@@ -461,7 +714,7 @@
         // Calculate required bells for current song
         function calculateRequiredBells() {
             const bellsSet = new Set();
-            
+
             currentSong.notes.forEach((noteData) => {
                 if (noteData.topNote !== '-') {
                     bellsSet.add(noteData.topNote);
@@ -470,7 +723,7 @@
                     bellsSet.add(noteData.bottomNote);
                 }
             });
-            
+
             return Array.from(bellsSet).sort((a, b) => a - b);
         }
 
@@ -478,12 +731,12 @@
         function calculateNoteTimes() {
             noteTimes = [];
             let cumulativeTime = 0;
-            
+
             currentSong.notes.forEach((noteData) => {
                 noteTimes.push(cumulativeTime);
                 cumulativeTime += noteData.duration || 1;
             });
-            
+
             noteTimes.push(cumulativeTime);
             totalBeats = cumulativeTime;
         }
@@ -491,22 +744,22 @@
         // Organize notes into lines (auto-breaks at BEATS_PER_LINE or when lineBreak: true)
         function organizeNotesIntoLines() {
             const lines = [];
-            let currentLine = {notes: [], startBeat: 0};
+            let currentLine = { notes: [], startBeat: 0 };
             let lineBeats = 0;
-            
+
             currentSong.notes.forEach((noteData, index) => {
-                currentLine.notes.push({...noteData, index});
+                currentLine.notes.push({ ...noteData, index });
                 lineBeats += noteData.duration || 1;
-                
+
                 // Start new line: explicit lineBreak, BEATS_PER_LINE, or end of song
                 const shouldBreak = noteData.lineBreak || lineBeats >= BEATS_PER_LINE || index === currentSong.notes.length - 1;
                 if (shouldBreak) {
                     lines.push(currentLine);
-                    currentLine = {notes: [], startBeat: noteTimes[index + 1] || totalBeats};
+                    currentLine = { notes: [], startBeat: noteTimes[index + 1] || totalBeats };
                     lineBeats = 0;
                 }
             });
-            
+
             return lines;
         }
 
@@ -514,40 +767,54 @@
         function renderNotes() {
             notesContainer.innerHTML = '';
             noteElements = [];
-            
+
             calculateNoteTimes();
             const lines = organizeNotesIntoLines();
-            
+
             lines.forEach((line, lineIndex) => {
                 const musicLine = document.createElement('div');
                 musicLine.className = 'music-line';
-                
+
                 // Row 1 (top notes)
                 const row1 = document.createElement('div');
                 row1.className = 'note-row';
                 line.notes.forEach(noteData => {
                     const noteElem = document.createElement('span');
                     noteElem.className = 'note' + (noteData.topNote === '-' ? ' dash' : '');
-                    noteElem.textContent = noteData.topNote;
+                    const bellNum = noteData.topNote;
+                    if (displayMode === 'bells' || bellNum === '-') {
+                        noteElem.textContent = bellNum;
+                    } else if (displayMode === 'sharps') {
+                        noteElem.textContent = bellToNoteSharps[bellNum];
+                    } else {
+                        noteElem.textContent = bellToNoteFlats[bellNum];
+                    }
                     noteElem.dataset.index = noteData.index;
                     noteElem.dataset.row = '1';
                     row1.appendChild(noteElem);
-                    noteElements.push({elem: noteElem, index: noteData.index, row: 1, lineIndex: lineIndex});
+                    noteElements.push({ elem: noteElem, index: noteData.index, row: 1, lineIndex: lineIndex });
                 });
-                
+
                 // Row 2 (bottom notes)
                 const row2 = document.createElement('div');
                 row2.className = 'note-row';
                 line.notes.forEach(noteData => {
                     const noteElem = document.createElement('span');
                     noteElem.className = 'note' + (noteData.bottomNote === '-' ? ' dash' : '');
-                    noteElem.textContent = noteData.bottomNote;
+                    const bellNum = noteData.bottomNote;
+                    if (displayMode === 'bells' || bellNum === '-') {
+                        noteElem.textContent = bellNum;
+                    } else if (displayMode === 'sharps') {
+                        noteElem.textContent = bellToNoteSharps[bellNum];
+                    } else {
+                        noteElem.textContent = bellToNoteFlats[bellNum];
+                    }
                     noteElem.dataset.index = noteData.index;
                     noteElem.dataset.row = '2';
                     row2.appendChild(noteElem);
-                    noteElements.push({elem: noteElem, index: noteData.index, row: 2, lineIndex: lineIndex});
+                    noteElements.push({ elem: noteElem, index: noteData.index, row: 2, lineIndex: lineIndex });
                 });
-                
+
                 // Words row
                 const wordRow = document.createElement('div');
                 wordRow.className = 'word-row';
@@ -558,7 +825,7 @@
                     wordElem.dataset.index = noteData.index;
                     wordRow.appendChild(wordElem);
                 });
-                
+
                 musicLine.appendChild(row1);
                 musicLine.appendChild(row2);
                 musicLine.appendChild(wordRow);
@@ -575,24 +842,24 @@
         // Animate bouncing ball smoothly from one note to next
         function animateBall(timestamp) {
             if (!isPlaying || !currentSong) return;
-            
+
             if (!startTime) {
                 startTime = timestamp - pausedTime;
             }
-            
+
             const elapsedMs = timestamp - startTime;
             const elapsedSeconds = elapsedMs / 1000;
-            
+
             const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
             const beatsPerSecond = bpm / 60;
             const currentBeat = elapsedSeconds * beatsPerSecond;
-            
+
             // Check if song is finished
             if (currentBeat >= totalBeats) {
                 stop();
                 return;
             }
-            
+
             // Find current and next note
             let noteIdx = 0;
             for (let i = 0; i < noteTimes.length - 1; i++) {
@@ -601,58 +868,73 @@
                     break;
                 }
             }
-            
+
             // Update active note if changed
             if (noteIdx !== currentNoteIndex) {
                 updateActiveNote(noteIdx);
                 currentNoteIndex = noteIdx;
+                
+                // Play the note sounds
+                const noteData = currentSong.notes[noteIdx];
+                if (noteData) {
+                    const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
+                    const beatDuration = 60 / bpm;
+                    const noteDurationSeconds = (noteData.duration || 1) * beatDuration;
+                    
+                    if (noteData.topNote && noteData.topNote !== '-') {
+                        playBellNote(noteData.topNote, noteDurationSeconds);
+                    }
+                    if (noteData.bottomNote && noteData.bottomNote !== '-') {
+                        playBellNote(noteData.bottomNote, noteDurationSeconds);
+                    }
+                }
             }
-            
+
             // Animate ball between current and next note
             const currentNoteTime = noteTimes[noteIdx];
             const nextNoteTime = noteTimes[noteIdx + 1];
             const noteDuration = nextNoteTime - currentNoteTime;
             const progress = (currentBeat - currentNoteTime) / noteDuration;
-            
+
             // Find note elements for current and next note
             const currentNotes = noteElements.filter(ne => ne.index === noteIdx);
             const nextNotes = noteElements.filter(ne => ne.index === noteIdx + 1);
-            
+
             if (currentNotes.length > 0) {
                 const currentNote1 = currentNotes.find(ne => ne.row === 1);
                 const nextNote1 = nextNotes.find(ne => ne.row === 1);
-                
+
                 if (currentNote1 && currentNote1.elem && nextNote1 && nextNote1.elem) {
                     const currentRect = currentNote1.elem.getBoundingClientRect();
                     const nextRect = nextNote1.elem.getBoundingClientRect();
                     const containerRect = displayContainer.getBoundingClientRect();
-                    
+
                     // Fixed Y position for the ball (190px from top of viewport)
                     const fixedBallY = 190;
                     const bounceHeight = Math.min(50, noteDuration * 20); // Bounce height depends on duration
                     const ballY = fixedBallY - (parabolicEase(progress) * bounceHeight);
-                    
+
                     // Interpolate X position (horizontal arc from current to next note)
                     const startX = currentRect.left + currentRect.width / 2 - 20;
                     const endX = nextRect.left + nextRect.width / 2 - 20;
                     const ballX = startX + (endX - startX) * progress;
-                    
+
                     bouncingBall.style.left = ballX + 'px';
                     bouncingBall.style.top = ballY + 'px';
                     bouncingBall.style.display = 'block';
-                    
+
                     // Check if we're transitioning to a new line
                     if (currentNote1.lineIndex !== nextNote1.lineIndex && currentNote1.lineIndex !== lastScrolledLineIndex) {
                         // Start scroll animation to new line (starts when ball hits last note of current line)
                         const nextYInContent = nextRect.top - containerRect.top + displayContainer.scrollTop;
                         const maxScroll = displayContainer.scrollHeight - displayContainer.clientHeight;
                         const targetScroll = Math.min(nextYInContent - fixedBallY + 80, maxScroll); // Scroll 80px more, capped at max
-                        
+
                         // Calculate duration in milliseconds (duration of current note transition)
                         const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
                         const msPerBeat = (60 / bpm) * 1000;
                         const scrollDuration = noteDuration * msPerBeat;
-                        
+
                         // Initialize scroll animation
                         scrollAnimationStart = performance.now();
                         scrollAnimationDuration = scrollDuration;
@@ -661,14 +943,14 @@
                         isScrollAnimating = true;
                         lastScrolledLineIndex = currentNote1.lineIndex;
                     }
-                    
+
                     // Animate scroll if active
                     if (isScrollAnimating) {
                         const elapsed = performance.now() - scrollAnimationStart;
                         const scrollProgress = Math.min(elapsed / scrollAnimationDuration, 1);
                         const newScrollTop = scrollStartPosition + (scrollTargetPosition - scrollStartPosition) * scrollProgress;
                         displayContainer.scrollTop = newScrollTop;
-                        
+
                         // End animation when close enough or complete
                         if (Math.abs(displayContainer.scrollTop - scrollTargetPosition) < 2 || scrollProgress >= 1) {
                             isScrollAnimating = false;
@@ -677,17 +959,17 @@
                 } else if (currentNote1 && currentNote1.elem) {
                     // Fallback for last note (no next note)
                     const rect1 = currentNote1.elem.getBoundingClientRect();
-                    
+
                     const fixedBallY = 190;
                     const bounceHeight = Math.min(50, noteDuration * 20);
                     const ballY = fixedBallY - (parabolicEase(progress) * bounceHeight);
-                    
+
                     bouncingBall.style.left = (rect1.left + rect1.width / 2 - 20) + 'px';
                     bouncingBall.style.top = ballY + 'px';
                     bouncingBall.style.display = 'block';
                 }
             }
-            
+
             animationFrameId = requestAnimationFrame(animateBall);
         }
 
@@ -697,7 +979,7 @@
             document.querySelectorAll('.note.active, .word.active').forEach(el => {
                 el.classList.remove('active');
             });
-            
+
             // Add active to new notes
             if (newIndex >= 0 && newIndex < currentSong.notes.length) {
                 document.querySelectorAll(`[data-index="${newIndex}"]`).forEach(el => {
@@ -710,19 +992,19 @@
         function scrollToNote(noteIndex) {
             const noteElement = noteElements.find(ne => ne.index === noteIndex && ne.row === 1);
             if (!noteElement || !noteElement.elem) return;
-            
+
             const noteRect = noteElement.elem.getBoundingClientRect();
             const containerRect = displayContainer.getBoundingClientRect();
             const fixedBallY = 190;
-            
+
             // Calculate target scroll position (note should be at ball position)
             const noteYInContent = noteRect.top - containerRect.top + displayContainer.scrollTop;
             const targetScroll = noteYInContent - fixedBallY + 80;
-            
+
             // Clamp to valid scroll range
             const maxScroll = displayContainer.scrollHeight - displayContainer.clientHeight;
             const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll));
-            
+
             // Smooth scroll to position
             displayContainer.scrollTo({
                 top: clampedScroll,
@@ -736,7 +1018,7 @@
                 bellsNeeded.style.display = 'none';
                 return;
             }
-            
+
             currentSong = songs[songName];
             currentNoteIndex = -1;
             lastScrolledLineIndex = -1;
@@ -744,21 +1026,21 @@
             isPlaying = false;
             startTime = null;
             pausedTime = 0;
-            
+
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
             }
-            
+
             playPauseBtn.textContent = '▶ Play';
             speedControl.value = currentSong.defaultBPM;
             bouncingBall.style.display = 'none';
-            
+
             // Display required bells
             const requiredBells = calculateRequiredBells();
             bellsList.textContent = requiredBells.join(', ');
             bellsNeeded.style.display = 'block';
-            
+
             renderNotes();
             displayContainer.scrollTop = 0;
         }
@@ -766,9 +1048,9 @@
         // Play/Pause toggle
         function togglePlayPause() {
             if (!currentSong) return;
-            
+
             isPlaying = !isPlaying;
-            
+
             if (isPlaying) {
                 playPauseBtn.textContent = '⏸ Pause';
                 startTime = null;
@@ -800,12 +1082,12 @@
         function nextNote() {
             if (!currentSong) return;
             stop();
-            
+
             if (currentNoteIndex < currentSong.notes.length - 1) {
                 currentNoteIndex++;
                 updateActiveNote(currentNoteIndex);
                 scrollToNote(currentNoteIndex);
-                
+
                 const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
                 const msPerBeat = (60 / bpm) * 1000;
                 pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
@@ -816,12 +1098,12 @@
         function previousNote() {
             if (!currentSong) return;
             stop();
-            
+
             if (currentNoteIndex > 0) {
                 currentNoteIndex--;
                 updateActiveNote(currentNoteIndex);
                 scrollToNote(currentNoteIndex);
-                
+
                 const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
                 const msPerBeat = (60 / bpm) * 1000;
                 pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
@@ -841,7 +1123,7 @@
             currentNoteIndex = currentSong.notes.length - 1;
             updateActiveNote(currentNoteIndex);
             scrollToNote(currentNoteIndex);
-            
+
             const bpm = parseInt(speedControl.value) || currentSong.defaultBPM;
             const msPerBeat = (60 / bpm) * 1000;
             pausedTime = noteTimes[currentNoteIndex] * msPerBeat;
@@ -858,6 +1140,16 @@
         }
 
         // Event listeners
+        document.getElementById('noteDisplaySelect').addEventListener('change', (e) => {
+            displayMode = e.target.value;
+            if (currentSong) {
+                renderNotes();
+                if (currentNoteIndex >= 0) {
+                    updateActiveNote(currentNoteIndex);
+                }
+            }
+        });
+
         songSelect.addEventListener('change', (e) => {
             loadSong(e.target.value);
         });
@@ -881,8 +1173,8 @@
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (!currentSong) return;
-            
-            switch(e.key) {
+
+            switch (e.key) {
                 case ' ':
                     e.preventDefault();
                     togglePlayPause();
@@ -910,4 +1202,5 @@
         initializeSongSelector();
     </script>
 </body>
+
 </html>
