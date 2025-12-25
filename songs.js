@@ -47,9 +47,9 @@ const songs = {
       {topNote:10,bottomNote:15,duration:1,word:'-'},
       {topNote:'-',bottomNote:'-',duration:0.5,word:'le-'},
       {topNote:'-',bottomNote:17,duration:0.5,word:'-'},
-      {topNote:,bottomNote:14,duration:1.5,word:'hem'},
-      {topNote:,bottomNote:12,duration:0.5,word:'-'},
-      {topNote:,bottomNote:10,duration:1,word:'-'},
+      {topNote:'-',bottomNote:14,duration:1.5,word:'hem'},
+      {topNote:'-',bottomNote:12,duration:0.5,word:'-'},
+      {topNote:'-',bottomNote:10,duration:1,word:'-'},
        ]
    },   
    "The Shepherd's Carol": {
@@ -858,6 +858,7 @@ const songs = {
   }
 
 };
+
 
 
 
