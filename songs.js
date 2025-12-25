@@ -2,6 +2,56 @@
 // Duration in beats: 0.5 = eighth note, 1 = quarter note, 2 = half note, 3 = dotted half, 4 = whole note
 // Add lineBreak: true to force a new line after this note (otherwise auto-breaks at 8 beats)
 const songs = {
+   "Christmas Bells": {
+    timeSignature: 3,
+    defaultBPM: 80,
+    notes: [
+      // Count off
+      { topNote: '-', bottomNote: '-', duration: 1 },
+      { topNote: '-', bottomNote: '-', duration: 1 },
+      { topNote: '-', bottomNote: '-', duration: 1, lineBreak: true },
+      {topNote:14,bottomNote:'-',duration:1,word:'Christ-'},
+      {topNote:14,bottomNote:'-',duration:1,word:'mas'},
+      {topNote:12,bottomNote:'-',duration:0.5,word:'bells'},
+      {topNote:14,bottomNote:'-',duration:0.5,word:'are'},
+      {topNote:10,bottomNote:'-',duration:1,word:'ring-'},
+      {topNote:5,bottomNote:'-',duration:0.5,word:'ing'},
+      {topNote:'-',bottomNote:14,duration:0.5,word:'-'},
+      {topNote:'-',bottomNote:17,duration:1,word:'-'},
+      {topNote:10,bottomNote:17,duration:1,word:'Hear'},
+      {topNote:9,bottomNote:'-',duration:0.5,word:'What'},
+      {topNote:10,bottomNote:'-',duration:0.5,word:'-'},
+      {topNote:12,bottomNote:15,duration:0.5,word:'they'},
+      {topNote:9,bottomNote:'-',duration:0.5,word:'-'},
+      {topNote:10,bottomNote:14,duration:0.75,word:'say'},
+      {topNote:5,bottomNote:'-',duration:0.25,word:'to'},
+      {topNote:5,bottomNote:'-',duration:1,word:'you'},
+      {topNote:'-',bottomNote:17,duration:1,word:'-'},
+      {topNote:9,bottomNote:19,duration:1,word:'Je-'},
+      {topNote:10,bottomNote:17,duration:0.5,word:'sus'},
+      {topNote:12,bottomNote:'-',duration:0.5,word:'-'},
+      {topNote:9,bottomNote:'-',duration:0.5,word:'is'},
+      {topNote:10,bottomNote:15,duration:0.5,word:'-'},
+      {topNote:7,bottomNote:14,duration:1,word:'born'},
+      {topNote:'-',bottomNote:'-',duration:1,word:'-'},
+      {topNote:5,bottomNote:14,duration:0.5,word:'-'},
+      {topNote:7,bottomNote:'-',duration:0.5,word:'in'},
+      {topNote:9,bottomNote:12,duration:1,word:'Beth-'},
+      {topNote:'-',bottomNote:17,duration:1,word:'-'},
+      {topNote:'-',bottomNote:'-',duration:0.5,word:'le-'},
+      {topNote:10,bottomNote:15,duration:0.5,word:'-'},
+      {topNote:5,bottomNote:14,duration:1.5,word:'hem'},
+      {topNote:7,bottomNote:15,duration:0.5,word:'-'},
+      {topNote:9,bottomNote:17,duration:1,word:'in'},
+      {topNote:'-',bottomNote:17,duration:1,word:'Beth-'},
+      {topNote:10,bottomNote:15,duration:1,word:'-'},
+      {topNote:'-',bottomNote:'-',duration:0.5,word:'le-'},
+      {topNote:'-',bottomNote:17,duration:0.5,word:'-'},
+      {topNote:,bottomNote:14,duration:1.5,word:'hem'},
+      {topNote:,bottomNote:12,duration:0.5,word:'-'},
+      {topNote:,bottomNote:10,duration:1,word:'-'},
+       ]
+   },   
    "The Shepherd's Carol": {
     timeSignature: 6,
     defaultBPM: 130,
@@ -808,5 +858,6 @@ const songs = {
   }
 
 };
+
 
 
