@@ -4,7 +4,7 @@
 const songs = {
    "Carol of the bells": {
     timeSignature: 3,
-    defaultBPM: 10,
+    defaultBPM: 100,
     notes: [
       // Count off
       { topNote: '-', bottomNote: '-', duration: 1 },
@@ -1007,6 +1007,7 @@ const songs = {
   }
 
 };
+
 
 
 
