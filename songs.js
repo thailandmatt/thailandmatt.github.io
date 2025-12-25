@@ -28,9 +28,9 @@ const songs = {
       {topNote:15,bottomNote:'-',duration:2,word:'claus'},
       {topNote:15,bottomNote:'-',duration:1,word:'down'},
       {topNote:15,bottomNote:'-',duration:0.5,word:'through'},
-      {topNote:15,bottomNote:'-',duration:0.5,word:'the'},
-      {topNote:17,bottomNote:'-',duration:1,word:'chim-'},
-      {topNote:15,bottomNote:'-',duration:0.5,word:'ney'},
+      {topNote:17,bottomNote:'-',duration:0.5,word:'the'},
+      {topNote:15,bottomNote:'-',duration:1,word:'chim-'},
+      {topNote:12,bottomNote:'-',duration:0.5,word:'ney'},
       {topNote:12,bottomNote:'-',duration:0.5,word:'with'},
       {topNote:8,bottomNote:'-',duration:1,word:'lots'},
       {topNote:12,bottomNote:'-',duration:1,word:'of'},
@@ -71,7 +71,7 @@ const songs = {
       {topNote:15,bottomNote:'-',duration:0.5,word:'through'},
       {topNote:17,bottomNote:'-',duration:0.5,word:'the'},
       {topNote:15,bottomNote:'-',duration:1,word:'chim-'},
-      {topNote:15,bottomNote:'-',duration:0.5,word:'ney'},
+      {topNote:12,bottomNote:'-',duration:0.5,word:'ney'},
       {topNote:12,bottomNote:'-',duration:0.5,word:'with'},
       {topNote:10,bottomNote:'-',duration:1,word:'good'},
       {topNote:15,bottomNote:'-',duration:1,word:'saint'},
@@ -717,3 +717,4 @@ const songs = {
   }
 
 };
+
