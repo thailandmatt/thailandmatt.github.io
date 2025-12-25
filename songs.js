@@ -17,15 +17,15 @@ const songs = {
       {topNote:15,bottomNote:"-",duration:1,word:''},
       {topNote:14,bottomNote:"-",duration:0.5,word:''},
       {topNote:15,bottomNote:"-",duration:0.5,word:''},
-      {topNote:12,bottomNote:"-",duration:1,word:''},
-      {topNote:15,bottomNote:"-",duration:1,word:''},
-      {topNote:14,bottomNote:"-",duration:0.5,word:''},
-      {topNote:15,bottomNote:"-",duration:0.5,word:''},
       {topNote:12,bottomNote:"-",duration:1,word:'', lineBreak: true },
       {topNote:15,bottomNote:"-",duration:1,word:''},
       {topNote:14,bottomNote:"-",duration:0.5,word:''},
       {topNote:15,bottomNote:"-",duration:0.5,word:''},
       {topNote:12,bottomNote:"-",duration:1,word:''},
+      {topNote:15,bottomNote:"-",duration:1,word:''},
+      {topNote:14,bottomNote:"-",duration:0.5,word:''},
+      {topNote:15,bottomNote:"-",duration:0.5,word:''},
+      {topNote:12,bottomNote:"-",duration:1,word:'', lineBreak: true },
       {topNote:15,bottomNote:12,duration:1,word:''},
       {topNote:14,bottomNote:"-",duration:0.5,word:''},
       {topNote:15,bottomNote:"-",duration:0.5,word:''},
@@ -1007,6 +1007,7 @@ const songs = {
   }
 
 };
+
 
 
 
