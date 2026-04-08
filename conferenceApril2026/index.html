@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>General Conference Word Cloud Explorer</title>
 
 <style>
@@ -9,6 +10,7 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     margin: 0;
     padding: 0;
+    line-height: 1.4;
   }
 
   header {
@@ -45,6 +47,8 @@
   .content {
     display: none;
     padding: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
   }
 
   .content.active {
@@ -54,7 +58,7 @@
   .profile {
     display: flex;
     gap: 1rem;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 1rem;
   }
 
@@ -111,10 +115,23 @@
     margin-top: 0.5rem;
   }
 
+  #speakerSelect {
+    margin-top: 0.35rem;
+    min-height: 2.25rem;
+    width: min(100%, 440px);
+  }
+
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   table {
     border-collapse: collapse;
     width: 100%;
     max-width: 600px;
+    min-width: 320px;
   }
 
   th, td {
@@ -130,6 +147,67 @@
     padding: 0.5rem 1rem;
     font-size: 1rem;
     cursor: pointer;
+    min-height: 2.25rem;
+  }
+
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 1.1rem;
+    }
+
+    .tab {
+      padding: 0.85rem 0.5rem;
+    }
+
+    .content {
+      padding: 1rem;
+    }
+
+    .profile {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    img.profile-pic {
+      width: 120px;
+    }
+
+    .game-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    .game-controls button,
+    #speakerSelect {
+      width: 100%;
+      max-width: none;
+    }
+
+    .game-cloud-wrap {
+      height: auto;
+      min-height: 0;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    #gameCloud {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: none;
+      margin: 0;
+    }
+
+    #speakerCloud {
+      margin: 0.75rem 0;
+    }
+
+    th,
+    td {
+      padding: 0.35rem;
+      font-size: 0.95rem;
+    }
   }
 </style>
 </head>
@@ -172,12 +250,14 @@
     <img id="speakerCloud" class="wordcloud" />
 
     <h3>Word Frequencies</h3>
-    <table>
-      <thead>
-        <tr><th>Word</th><th>Count</th></tr>
-      </thead>
-      <tbody id="freqTable"></tbody>
-    </table>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Word</th><th>Count</th></tr>
+        </thead>
+        <tbody id="freqTable"></tbody>
+      </table>
+    </div>
   </div>
 
 </div>
@@ -211,8 +291,10 @@
 
 <script>
 let speakers = [];
+const OVERALL_ID = "all_talks";
 
 const SPEAKER_IDS = [
+  OVERALL_ID,
   "2026-04-11oaks",
   "2026-04-12christofferson",
   "2026-04-13kearon",
@@ -281,6 +363,19 @@ function populateDropdown() {
 function fallbackNameFromId(id) {
   const key = id.replace(/^\d{4}-\d{2}-\d{1,2}/, "");
   return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function getStaticMetadata(id) {
+  if (id === OVERALL_ID) {
+    return {
+      id,
+      name: "Overall",
+      title: "All Talks Combined",
+      summary: "Combined word frequency and cloud for all April 2026 General Conference talks."
+    };
+  }
+
+  return null;
 }
 
 function cleanSpeakerName(byline, fallback) {
@@ -360,6 +455,9 @@ async function buildSpeakersFromFiles() {
   const ids = SPEAKER_IDS;
 
   const parsedSpeakers = await Promise.all(ids.map(async id => {
+    const staticMetadata = getStaticMetadata(id);
+    if (staticMetadata) return staticMetadata;
+
     try {
       const textResp = await fetch(`text/${id}.txt`);
       if (!textResp.ok) {
@@ -391,12 +489,19 @@ async function buildSpeakersFromFiles() {
 async function loadSpeaker(id) {
   if (!id) return;
   const speaker = speakers.find(s => s.id === id);
+  const speakerImg = document.getElementById("speakerImg");
 
   document.getElementById("speakerView").style.display = "block";
   document.getElementById("speakerName").textContent = speaker.name;
   document.getElementById("speakerTitle").textContent = speaker.title;
   document.getElementById("speakerSummary").textContent = speaker.summary;
-  document.getElementById("speakerImg").src = `images/${id}.jpg`;
+  if (id === OVERALL_ID) {
+    speakerImg.style.display = "none";
+    speakerImg.removeAttribute("src");
+  } else {
+    speakerImg.style.display = "block";
+    speakerImg.src = `images/${id}.jpg`;
+  }
   document.getElementById("speakerCloud").src = `wordclouds/${id}.png`;
 
   const resp = await fetch(`frequencies/${id}.csv`);
@@ -427,11 +532,18 @@ function startGame() {
 
 function revealSpeaker() {
   if (!currentGameSpeaker) return;
+  const gameImg = document.getElementById("gameImg");
+
   document.getElementById("gameName").textContent = currentGameSpeaker.name;
   document.getElementById("gameTitle").textContent = currentGameSpeaker.title;
   document.getElementById("gameSummary").textContent = currentGameSpeaker.summary;
-  document.getElementById("gameImg").src =
-    `images/${currentGameSpeaker.id}.jpg`;
+  if (currentGameSpeaker.id === OVERALL_ID) {
+    gameImg.style.display = "none";
+    gameImg.removeAttribute("src");
+  } else {
+    gameImg.style.display = "block";
+    gameImg.src = `images/${currentGameSpeaker.id}.jpg`;
+  }
   document.getElementById("gameReveal").style.display = "block";
 }
 
