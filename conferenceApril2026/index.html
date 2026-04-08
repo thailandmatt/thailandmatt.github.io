@@ -212,6 +212,46 @@
 <script>
 let speakers = [];
 
+const SPEAKER_IDS = [
+  "2026-04-11oaks",
+  "2026-04-12christofferson",
+  "2026-04-13kearon",
+  "2026-04-14yee",
+  "2026-04-15gilbert",
+  "2026-04-16bednar",
+  "2026-04-17teh",
+  "2026-04-18becerra",
+  "2026-04-19eyring",
+  "2026-04-210soares",
+  "2026-04-21christofferson",
+  "2026-04-22larson",
+  "2026-04-23stevenson",
+  "2026-04-24ortega",
+  "2026-04-25wu",
+  "2026-04-26wunderli",
+  "2026-04-27causse",
+  "2026-04-28holmes",
+  "2026-04-29matswagothata",
+  "2026-04-41uchtdorf",
+  "2026-04-42freeman",
+  "2026-04-43larreal",
+  "2026-04-44rowe",
+  "2026-04-45rasband",
+  "2026-04-46renlund",
+  "2026-04-47mutombo",
+  "2026-04-48walker",
+  "2026-04-49oaks",
+  "2026-04-51christofferson",
+  "2026-04-52wong",
+  "2026-04-53hall",
+  "2026-04-54porter",
+  "2026-04-55andersen",
+  "2026-04-56cook",
+  "2026-04-57wakolo",
+  "2026-04-58gong",
+  "2026-04-59oaks"
+];
+
 let currentGameSpeaker = null;
 
 function setRuntimeWarning(message) {
@@ -310,26 +350,6 @@ function parseTalkMetadata(text, id) {
   };
 }
 
-async function fetchIdsFromDirectory(path, extension) {
-  const response = await fetch(`${path}/`);
-  if (!response.ok) {
-    throw new Error(`Could not list ${path}`);
-  }
-
-  const html = await response.text();
-  const regex = new RegExp(`href=["']([^"']+\\${extension})["']`, "gi");
-  const ids = new Set();
-  let match;
-
-  while ((match = regex.exec(html)) !== null) {
-    const fileName = match[1].split("/").pop();
-    if (!fileName || fileName === `all_talks${extension}`) continue;
-    ids.add(fileName.replace(new RegExp(`\\${extension}$`), ""));
-  }
-
-  return Array.from(ids).sort();
-}
-
 async function buildSpeakersFromFiles() {
   if (window.location.protocol === "file:") {
     setRuntimeWarning("This page is opened with file://, so browser security blocks data fetches. Start a local web server and open the site via http://localhost.");
@@ -337,7 +357,7 @@ async function buildSpeakersFromFiles() {
   }
 
   setRuntimeWarning("");
-  const ids = await fetchIdsFromDirectory("frequencies", ".csv");
+  const ids = SPEAKER_IDS;
 
   const parsedSpeakers = await Promise.all(ids.map(async id => {
     try {
