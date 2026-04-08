@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>General Conference Word Cloud Explorer</title>
+
+<style>
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    padding: 0.5rem 1rem;
+    background: #1f3a5f;
+    color: white;
+    text-align: center;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .tabs {
+    display: flex;
+    background: #eee;
+  }
+
+  .tab {
+    padding: 1rem;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .tab.active {
+    background: white;
+    border-bottom: 2px solid #1f3a5f;
+  }
+
+  .content {
+    display: none;
+    padding: 1.5rem;
+  }
+
+  .content.active {
+    display: block;
+  }
+
+  .profile {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  img.profile-pic {
+    width: 140px;
+    border-radius: 6px;
+  }
+
+  img.wordcloud {
+    max-width: 100%;
+    margin: 1rem 0;
+  }
+
+  .game-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .game-cloud-wrap {
+    height: min(65vh, 560px);
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #gameCloud {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  #gameSummary {
+    max-width: 900px;
+    line-height: 1.5;
+  }
+
+  .profile-meta h2,
+  .profile-meta h3,
+  .profile-meta p {
+    margin: 0;
+  }
+
+  .profile-meta h3 {
+    margin-top: 0.25rem;
+    color: #1f3a5f;
+  }
+
+  .profile-meta p {
+    margin-top: 0.5rem;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 0.4rem;
+  }
+
+  th {
+    background: #f0f0f0;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>April 2026 General Conference</h1>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('explore')">Explore</div>
+  <div class="tab" onclick="showTab('game')">Game</div>
+</div>
+
+<!-- ======================= -->
+<!-- Explore Mode            -->
+<!-- ======================= -->
+<div id="explore" class="content active">
+
+  <p id="runtimeWarning" style="display:none; color:#8a1f11; background:#fdecea; border:1px solid #f5c2c7; padding:0.75rem; border-radius:6px;"></p>
+
+  <label>
+    Speaker:
+    <select id="speakerSelect" onchange="loadSpeaker(this.value)">
+      <option value="">-- Choose --</option>
+    </select>
+  </label>
+
+  <div id="speakerView" style="display:none;">
+    <div class="profile">
+      <img id="speakerImg" class="profile-pic" />
+      <div class="profile-meta">
+        <h2 id="speakerName"></h2>
+        <h3 id="speakerTitle"></h3>
+        <p id="speakerSummary"></p>
+      </div>
+    </div>
+
+    <img id="speakerCloud" class="wordcloud" />
+
+    <h3>Word Frequencies</h3>
+    <table>
+      <thead>
+        <tr><th>Word</th><th>Count</th></tr>
+      </thead>
+      <tbody id="freqTable"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ======================= -->
+<!-- Game Mode               -->
+<!-- ======================= -->
+<div id="game" class="content">
+
+  <div class="game-controls">
+    <button onclick="startGame()">New Word Cloud</button>
+    <button onclick="revealSpeaker()">Reveal Speaker</button>
+  </div>
+
+  <div class="game-cloud-wrap">
+    <img id="gameCloud" class="wordcloud" />
+  </div>
+
+  <div id="gameReveal" style="display:none; margin-top:1rem;">
+    <div class="profile">
+      <img id="gameImg" class="profile-pic" />
+      <div class="profile-meta">
+        <h2 id="gameName"></h2>
+        <h3 id="gameTitle"></h3>
+        <p id="gameSummary"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let speakers = [];
+
+let currentGameSpeaker = null;
+
+function setRuntimeWarning(message) {
+  const box = document.getElementById("runtimeWarning");
+  box.textContent = message;
+  box.style.display = message ? "block" : "none";
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab[onclick*="${id}"]`).classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function populateDropdown() {
+  const sel = document.getElementById("speakerSelect");
+  sel.innerHTML = '<option value="">-- Choose --</option>';
+  speakers.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+}
+
+function fallbackNameFromId(id) {
+  const key = id.replace(/^\d{4}-\d{2}-\d{1,2}/, "");
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function cleanSpeakerName(byline, fallback) {
+  if (!byline) return fallback;
+
+  return byline
+    .replace(/^by\s+/i, "")
+    .replace(/^presented\s+by\s+/i, "")
+    .replace(/^(president|elder|sister|brother)\s+/i, "")
+    .trim() || fallback;
+}
+
+function isSpeakerRoleLine(line) {
+  if (!line) return false;
+
+  return (
+    /^of the\s+/i.test(line) ||
+    /^president of\b/i.test(line) ||
+    /^(acting|assistant|associate)\s+president\b/i.test(line) ||
+    /^(first|second|third) counselor\b/i.test(line) ||
+    /\bgeneral presidency\b/i.test(line) ||
+    /\bgeneral president\b/i.test(line) ||
+    /\bquorum of the twelve apostles\b/i.test(line) ||
+    /\bpresiding bishopric\b/i.test(line) ||
+    /\bthe seventy\b/i.test(line)
+  );
+}
+
+function parseTalkMetadata(text, id) {
+  const rawLines = text.split(/\r?\n/);
+  const lines = rawLines.map(line => line.trim());
+
+  const titleIndex = lines.findIndex(line => line.length > 0);
+  const title = titleIndex >= 0 ? lines[titleIndex] : "Talk";
+
+  const bylineIndex = lines.findIndex((line, idx) => idx > titleIndex && line.length > 0);
+  const byline = bylineIndex >= 0 ? lines[bylineIndex] : "";
+
+  let summary = "Summary not available.";
+  let foundParagraphBreak = false;
+  const scanStart = bylineIndex >= 0 ? bylineIndex + 1 : titleIndex + 1;
+
+  for (let i = scanStart; i < lines.length; i += 1) {
+    const line = lines[i];
+
+    if (!line) {
+      foundParagraphBreak = true;
+      continue;
+    }
+
+    if (line === byline) continue;
+    if (/^by\s+/i.test(line)) continue;
+    if (/^presented\s+by\s+/i.test(line)) continue;
+    if (isSpeakerRoleLine(line)) continue;
+
+    if (foundParagraphBreak || i === scanStart) {
+      summary = line;
+      break;
+    }
+  }
+
+  const fallbackName = fallbackNameFromId(id);
+  return {
+    title,
+    summary,
+    name: cleanSpeakerName(byline, fallbackName)
+  };
+}
+
+async function fetchIdsFromDirectory(path, extension) {
+  const response = await fetch(`${path}/`);
+  if (!response.ok) {
+    throw new Error(`Could not list ${path}`);
+  }
+
+  const html = await response.text();
+  const regex = new RegExp(`href=["']([^"']+\\${extension})["']`, "gi");
+  const ids = new Set();
+  let match;
+
+  while ((match = regex.exec(html)) !== null) {
+    const fileName = match[1].split("/").pop();
+    if (!fileName || fileName === `all_talks${extension}`) continue;
+    ids.add(fileName.replace(new RegExp(`\\${extension}$`), ""));
+  }
+
+  return Array.from(ids).sort();
+}
+
+async function buildSpeakersFromFiles() {
+  if (window.location.protocol === "file:") {
+    setRuntimeWarning("This page is opened with file://, so browser security blocks data fetches. Start a local web server and open the site via http://localhost.");
+    return;
+  }
+
+  setRuntimeWarning("");
+  const ids = await fetchIdsFromDirectory("frequencies", ".csv");
+
+  const parsedSpeakers = await Promise.all(ids.map(async id => {
+    try {
+      const textResp = await fetch(`text/${id}.txt`);
+      if (!textResp.ok) {
+        return {
+          id,
+          name: fallbackNameFromId(id),
+          title: "Talk",
+          summary: "Summary not available."
+        };
+      }
+
+      const talkText = await textResp.text();
+      const metadata = parseTalkMetadata(talkText, id);
+      return { id, ...metadata };
+    } catch {
+      return {
+        id,
+        name: fallbackNameFromId(id),
+        title: "Talk",
+        summary: "Summary not available."
+      };
+    }
+  }));
+
+  speakers = parsedSpeakers;
+  populateDropdown();
+}
+
+async function loadSpeaker(id) {
+  if (!id) return;
+  const speaker = speakers.find(s => s.id === id);
+
+  document.getElementById("speakerView").style.display = "block";
+  document.getElementById("speakerName").textContent = speaker.name;
+  document.getElementById("speakerTitle").textContent = speaker.title;
+  document.getElementById("speakerSummary").textContent = speaker.summary;
+  document.getElementById("speakerImg").src = `images/${id}.jpg`;
+  document.getElementById("speakerCloud").src = `wordclouds/${id}.png`;
+
+  const resp = await fetch(`frequencies/${id}.csv`);
+  const text = await resp.text();
+
+  const tbody = document.getElementById("freqTable");
+  tbody.innerHTML = "";
+
+  text.split("\n").slice(1, 26).forEach(line => {
+    if (!line) return;
+    const [word, count] = line.split(",");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${word}</td><td>${count}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function startGame() {
+  if (!speakers.length) return;
+
+  currentGameSpeaker = speakers[
+    Math.floor(Math.random() * speakers.length)
+  ];
+  document.getElementById("gameReveal").style.display = "none";
+  document.getElementById("gameCloud").src =
+    `wordclouds/${currentGameSpeaker.id}.png`;
+}
+
+function revealSpeaker() {
+  if (!currentGameSpeaker) return;
+  document.getElementById("gameName").textContent = currentGameSpeaker.name;
+  document.getElementById("gameTitle").textContent = currentGameSpeaker.title;
+  document.getElementById("gameSummary").textContent = currentGameSpeaker.summary;
+  document.getElementById("gameImg").src =
+    `images/${currentGameSpeaker.id}.jpg`;
+  document.getElementById("gameReveal").style.display = "block";
+}
+
+buildSpeakersFromFiles()
+  .catch(err => {
+    console.error(err);
+    setRuntimeWarning("Unable to load speaker data. Confirm you are running from an HTTP server and not file://.");
+    const fallback = document.getElementById("speakerSelect");
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Unable to load speaker list";
+    fallback.appendChild(opt);
+  });
+</script>
+
+</body>
+</html>
