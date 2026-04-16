@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spanish Flashcards</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+    }
+    .card {
+        background: white;
+        width: 420px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+    .english {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .meta {
+        font-size: 14px;
+        color: gray;
+        margin-bottom: 20px;
+    }
+    input {
+        width: 90%;
+        padding: 10px;
+        font-size: 18px;
+        margin-bottom: 15px;
+        border: 2px solid;
+        border-radius: 6px;
+    }
+    .accent-buttons button {
+        margin: 3px;
+        padding: 6px 10px;
+        font-size: 16px;
+    }
+    #checkBtn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    #answer {
+        margin-top: 20px;
+        font-size: 22px;
+        font-weight: bold;
+        display: none;
+    }
+    #score {
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+#scoreCorrect {
+    color: green;
+    font-weight: bold;
+}
+
+#scoreIncorrect {
+    color: red;
+    font-weight: bold;
+}
+
+#scoreAccuracy {
+    color: black;
+    font-weight: bold;
+}
+
+.card.correct {
+    background-color: #d8f5d0; /* soft green */
+    transition: background-color 0.3s ease;
+}
+
+.card.incorrect {
+    background-color: #f8d0d0; /* soft red */
+    transition: background-color 0.3s ease;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+    <div id="score">
+    	<span id="scoreCorrect">Correct: 0</span> |
+	<span id="scoreIncorrect">Incorrect: 0</span> |
+	<span id="scoreAccuracy">Accuracy: 0%</span>
+    </div>
+
+
+    <textarea id="csvInput" rows="4" style="width:100%; font-size:14px; display:none;">
+Context,Category,Spanish,English
+Arquitectura,Verbo,colocar,to place
+Arquitectura,Verbo,alquilar,to rent
+Arquitectura,Verbo,edificar,to build
+Arquitectura,Adjetivo,adornado/a,decorated
+Arquitectura,Adjetivo,amplio/a,spacious
+Arquitectura,Adjetivo,luminoso/a,"illuminated, bright"
+Arquitectura,Sustantivo,el acueducto,aqueduct
+Arquitectura,Sustantivo,el alcázar,"fortress, palace"
+Arquitectura,Sustantivo,el arco,arch
+Arquitectura,Sustantivo,el campanario,bell tower
+Arquitectura,Sustantivo,la capilla,chapel
+Arquitectura,Sustantivo,la cúpula / el domo,dome
+Arquitectura,Sustantivo,el rascacielos,"skyscraper, high‑rise"
+Arquitectura,Sustantivo,el entorno,"environment, surroundings"
+Arquitectura,Sustantivo,la fachada,"façade, front"
+Arquitectura,Sustantivo,el ladrillo,brick
+Arquitectura,Sustantivo,la piedra,stone
+Arquitectura,Sustantivo,el acero,steel
+Arquitectura,Sustantivo,la madera,wood
+Arquitectura,Sustantivo,el cemento,cement
+Arquitectura,Sustantivo,el barro,"mud, clay"
+Artes visuales y escénicas,Verbo,estrenar,to premiere
+Artes visuales y escénicas,Verbo,exhibir,"to exhibit, display"
+Artes visuales y escénicas,Verbo,trazar,to trace
+Artes visuales y escénicas,Verbo,enriquecer,to enrich
+Artes visuales y escénicas,Verbo,esculpir,to sculpt
+Artes visuales y escénicas,Adjetivo,inquietante,"troubling, worrying"
+Artes visuales y escénicas,Adjetivo,intrigante,intriguing
+Artes visuales y escénicas,Adjetivo,llamativo/a,"flashy, striking, noteworthy"
+Artes visuales y escénicas,Adjetivo,realista,realistic
+Artes visuales y escénicas,Sustantivo,la artesanía,craftwork
+Artes visuales y escénicas,Sustantivo,las bellas artes,fine arts
+Artes visuales y escénicas,Sustantivo,el estreno,"the debut, premiere"
+Artes visuales y escénicas,Sustantivo,la exposición,exhibition
+Artes visuales y escénicas,Sustantivo,el mural,mural
+Artes visuales y escénicas,Sustantivo,la obra de teatro,theatrical production
+Artes visuales y escénicas,Sustantivo,la cinematografía,cinematography
+Artes visuales y escénicas,Sustantivo,el sentimiento,feeling
+Artes visuales y escénicas,Sustantivo,el matiz,"hint, shade, nuance"
+Artes visuales y escénicas,Sustantivo,la época,time period
+Artes visuales y escénicas,Sustantivo,el siglo,century
+Bienestar social,Verbo,maltratar,"to mistreat, abuse"
+Bienestar social,Verbo,convocar,"to convene, call together"
+Bienestar social,Adjetivo,desfavorecido/a,disadvantaged
+Bienestar social,Adjetivo,"equitativo/a, justo/a","equal, fair"
+Bienestar social,Sustantivo,la igualdad,equality
+Bienestar social,Sustantivo,la desigualdad,inequality
+Bienestar social,Sustantivo,la pobreza,poverty
+Bienestar social,Sustantivo,la infraestructura,infrastructure
+Bienestar social,Sustantivo,los derechos humanos,human rights
+Bienestar social,Sustantivo,la marginalidad,marginalization
+Bienestar social,Sustantivo,el maltrato,"mistreatment, abuse"
+Bienestar social,Sustantivo,el alojamiento,"lodging, accommodations"
+Bienestar social,Sustantivo,la frontera,the border
+Bienestar social,Sustantivo,la clase alta / media / baja,upper / middle / lower class
+Bienestar social,Sustantivo,la política (social),(social) policy
+Bienestar social,Sustantivo,el (des)empleo,(un)employment
+Ciudadanía global,Verbo,donar,to donate
+Ciudadanía global,Verbo,promover (o‑ue),to promote
+Ciudadanía global,Verbo,invertir,to invest
+Ciudadanía global,Verbo,aportar,"to contribute, provide"
+Ciudadanía global,Verbo,concientizar,to raise awareness
+Ciudadanía global,Adjetivo,sin fines de lucro,non‑profit
+Ciudadanía global,Adjetivo,imprescindible,"essential, indispensable"
+Ciudadanía global,Sustantivo,el negocio / la empresa,business
+Ciudadanía global,Sustantivo,una organización de beneficencia,charity
+Ciudadanía global,Sustantivo,la aportación,"assistance, contribution"
+Ciudadanía global,Sustantivo,el compromiso,commitment
+Ciudadanía global,Sustantivo,la campaña,campaign
+Ciudadanía global,Sustantivo,el anfitrión / la anfitriona,"host, hostess"
+Ciudadanía global,Sustantivo,el acontecimiento,"event, occurrence"
+Comunidades educativas,Verbo,inscribir(se),"to sign up, register"
+Comunidades educativas,Verbo,solicitar,to request; apply
+Comunidades educativas,Verbo,titularse,to obtain a degree
+Comunidades educativas,Adjetivo,analfabeto/a,illiterate
+Comunidades educativas,Adjetivo,alfabetizado/a,literate
+Comunidades educativas,Adjetivo,resistente,"tough, resilient"
+Comunidades educativas,Adjetivo,sobresaliente,outstanding (distinction)
+Comunidades educativas,Adjetivo,culto/a,"educated, cultured"
+Comunidades educativas,Sustantivo,la educación,"education, schooling"
+Comunidades educativas,Sustantivo,la escolaridad,schooling
+Comunidades educativas,Sustantivo,el aprendizaje,learning
+Comunidades educativas,Sustantivo,el propósito,"intent, intention, purpose"
+Comunidades educativas,Sustantivo,el liderazgo,leadership
+Comunidades educativas,Sustantivo,el entrenamiento,training
+Comunidades educativas,Sustantivo,la destreza,"skill, ability"
+Comunidades educativas,Sustantivo,el título,degree
+Comunidades educativas,Sustantivo,la carrera / la especialización,major
+Comunidades educativas,Sustantivo,la asignatura,"subject, course"
+Comunidades educativas,Sustantivo,la beca / la subvención,"scholarship, grant"
+Comunidades educativas,Sustantivo,el analfabetismo,illiteracy
+Comunidades educativas,Sustantivo,la alfabetización,literacy
+Comunidades educativas,Sustantivo,el/la licenciado/a; el/la egresado/a,graduate
+Conciencia social,Verbo,seguir adelante,to carry on
+Conciencia social,Verbo,superar,to overcome
+Conciencia social,Verbo,hacer trabajo voluntario,to volunteer
+Conciencia social,Verbo,cometer,to commit
+Conciencia social,Verbo,solucionar / resolver,"to solve, resolve"
+Conciencia social,Sustantivo,la conciencia social,social awareness
+Conciencia social,Sustantivo,el prejuicio,prejudice
+Conciencia social,Sustantivo,el/la huérfano/a,orphan
+Conciencia social,Sustantivo,el orfanato,orphanage
+Conciencia social,Sustantivo,el delito / el crimen,crime
+Conciencia social,Sustantivo,la cárcel,jail
+Conciencia social,Sustantivo,la pandilla,gang
+Conciencia social,Sustantivo,la ignorancia,ignorance
+Conciencia social,Sustantivo,la irresponsabilidad,irresponsibility
+Conciencia social,Sustantivo,el/la voluntario/a,volunteer
+Conciencia social,Sustantivo,el acoso,"harassment, bullying"
+Definiciones de la belleza,Verbo,atraer,to attract
+Definiciones de la belleza,Verbo,conmover,to move/touch emotionally
+Definiciones de la belleza,Verbo,percibir,"to perceive, notice"
+Definiciones de la belleza,Verbo,menospreciar,to undervalue
+Definiciones de la belleza,Verbo,realzar,"to highlight, accentuate"
+Definiciones de la belleza,Adjetivo,"bello/a, hermoso/a",beautiful
+Definiciones de la belleza,Adjetivo,sensible,sensitive
+Definiciones de la belleza,Adjetivo,cotidiano/a,"daily, everyday"
+Definiciones de la belleza,Sustantivo,la belleza / la hermosura,beauty
+Definiciones de la belleza,Sustantivo,la apariencia,appearance
+Definiciones de la belleza,Sustantivo,los estándares,standards
+Definiciones de la belleza,Sustantivo,la armonía,harmony
+Definiciones de la belleza,Sustantivo,el canon / los cánones,"norms, ideals"
+Definiciones de la belleza,Sustantivo,la inseguridad,insecurity
+Definiciones de la belleza,Sustantivo,los rasgos,features
+Definiciones de la belleza,Sustantivo,la vanidad,vanity
+Definiciones de la belleza,Sustantivo,el rostro,face
+Definiciones de la creatividad,Verbo,superarse (a sí mismo/a),to improve/better oneself
+Definiciones de la creatividad,Verbo,equivocarse,to make mistakes
+Definiciones de la creatividad,Verbo,potenciar,"to develop, strengthen"
+Definiciones de la creatividad,Verbo,fomentar / alentar,to encourage
+Definiciones de la creatividad,Verbo,arriesgarse,to take a risk
+Definiciones de la creatividad,Verbo,identificarse con,to identify oneself with
+Definiciones de la creatividad,Verbo,expresarse,to express oneself
+Definiciones de la creatividad,Sustantivo,la afición,"interest, hobby"
+Definiciones de la creatividad,Sustantivo,las destrezas,skills
+Definiciones de la creatividad,Sustantivo,un modelo a seguir / imitar,role model
+Definiciones de la creatividad,Sustantivo,la chispa,spark
+Definiciones de la creatividad,Sustantivo,el ingenio,ingenuity
+Definiciones de la creatividad,Expresión / Etc.,(estar) a cargo de,(to be) in charge of
+Definiciones de la creatividad,Adjetivo,desinhibido/a,uninhibited
+Efectos de la tecnología,Verbo,actualizar,to update
+Efectos de la tecnología,Verbo,enchufar,to plug in
+Efectos de la tecnología,Verbo,acceder (a),to access
+Efectos de la tecnología,Verbo,comunicarse,to communicate
+Efectos de la tecnología,Verbo,fallar,to fail
+Efectos de la tecnología,Sustantivo,el ordenador,computer (Spain)
+Efectos de la tecnología,Sustantivo,la comodidad,"comfort, convenience"
+Efectos de la tecnología,Sustantivo,el cargador,charger
+Efectos de la tecnología,Sustantivo,el rendimiento,"performance, efficiency"
+Efectos de la tecnología,Adjetivo,disponible,available
+Efectos de la tecnología,Adjetivo,actual,"current, present"
+Efectos de la tecnología,Adjetivo,inalámbrico/a,wireless
+Efectos de la tecnología,Adjetivo,(estar) enganchado/a,"(to be) addicted, hooked, obsessed"
+Efectos de la tecnología,Adjetivo,innovador/a,innovative
+Efectos de la tecnología,Adjetivo,desconectado/a,disconnected
+El acceso a la tecnología,Verbo,faltar,to lack
+El acceso a la tecnología,Verbo,difundir,"to spread, broadcast, disseminate"
+El acceso a la tecnología,Adjetivo,asequible,"affordable, attainable"
+El acceso a la tecnología,Adjetivo,escaso/a,scarce
+El acceso a la tecnología,Adjetivo,desigual,unequal
+El acceso a la tecnología,Adjetivo,accesible / alcanzable,accessible
+El acceso a la tecnología,Sustantivo,la calidad,quality
+El acceso a la tecnología,Sustantivo,la cantidad,quantity
+El acceso a la tecnología,Sustantivo,la falta (de),lack (of)
+El acceso a la tecnología,Sustantivo,la velocidad / la rapidez,speed
+El acceso a la tecnología,Sustantivo,los países desarrollados,developed countries
+El acceso a la tecnología,Sustantivo,la disponibilidad,availability
+El acceso a la tecnología,Sustantivo,la banda ancha,broadband
+El entretenimiento y la diversión,Verbo,esforzarse,to make an effort
+El entretenimiento y la diversión,Verbo,gozar (de),to enjoy
+El entretenimiento y la diversión,Verbo,entretener(se),"to entertain, (have fun)"
+El entretenimiento y la diversión,Verbo,enriquecer,to enrich
+El entretenimiento y la diversión,Verbo,festejar,to celebrate
+El entretenimiento y la diversión,Verbo,reír(se),to laugh
+El entretenimiento y la diversión,Verbo,sonreír,to smile
+El entretenimiento y la diversión,Adjetivo,aficionado/a (a),"fond (of), enthusiastic (about)"
+El entretenimiento y la diversión,Sustantivo,el entretenimiento,entertainment
+El entretenimiento y la diversión,Sustantivo,la diversión,"fun, hobby, pastime"
+El entretenimiento y la diversión,Sustantivo,el (tiempo de) ocio,leisure (time)
+El entretenimiento y la diversión,Expresión,tener ganas de,to feel like (doing something)
+El entretenimiento y la diversión,Expresión,morir de ganas por,to be dying to (do something)
+El entretenimiento y la diversión,Expresión,darse por vencido,to give up
+Enajenación y asimilación,Verbo,acostumbrarse a,to become accustomed to
+Enajenación y asimilación,Verbo,asimilar,to assimilate
+Enajenación y asimilación,Verbo,inmigrar,to immigrate
+Enajenación y asimilación,Verbo,emigrar,to emigrate
+Enajenación y asimilación,Verbo,huir de,to flee from
+Enajenación y asimilación,Adjetivo,ajeno/a,foreign
+Enajenación y asimilación,Sustantivo,la asimilación,assimilation
+Enajenación y asimilación,Sustantivo,la inmigración,immigration (entering)
+Enajenación y asimilación,Sustantivo,la emigración,emigration (leaving)
+Enajenación y asimilación,Sustantivo,la enajenación,"isolation, alienation"
+Enajenación y asimilación,Sustantivo,la convivencia,coexistence
+Enajenación y asimilación,Sustantivo,el asilo,"refuge, asylum, shelter"
+Enajenación y asimilación,Sustantivo,la barrera,"barrier, impediment"
+Héroes y figuras históricas,Verbo,liderar,to lead
+Héroes y figuras históricas,Verbo,potenciar,"to strengthen, boost"
+Héroes y figuras históricas,Verbo,renunciar,"to resign, renounce"
+Héroes y figuras históricas,Verbo,rememorar,to remember
+Héroes y figuras históricas,Verbo,arriesgar,to risk
+Héroes y figuras históricas,Verbo,involucrarse,"to take part, get involved"
+Héroes y figuras históricas,Verbo,regir (e‑i),"to govern, rule"
+Héroes y figuras históricas,Verbo,fomentar,"to promote, incite"
+Héroes y figuras históricas,Verbo,tender (e‑ie) a,to be inclined to
+Héroes y figuras históricas,Verbo,ser propenso/a a,to be prone to
+Héroes y figuras históricas,Verbo,asimilar,to assimilate
+Héroes y figuras históricas,Verbo,inmigrar,to immigrate
+Héroes y figuras históricas,Verbo,emigrar,to emigrate
+Héroes y figuras históricas,Verbo,huir de,to flee from
+Héroes y figuras históricas,Sustantivo,el valor,value; courage
+Héroes y figuras históricas,Sustantivo,la valentía,bravery
+Héroes y figuras históricas,Sustantivo,la honradez / la honestidad,"integrity, honesty"
+Héroes y figuras históricas,Sustantivo,la hazaña,"feat, accomplishment"
+Héroes y figuras históricas,Sustantivo,el liderazgo,leadership
+Héroes y figuras históricas,Sustantivo,el/la visionario/a,visionary
+Héroes y figuras históricas,Sustantivo,la trayectoria,"trajectory, path"
+Héroes y figuras históricas,Sustantivo,la incertidumbre,"uncertainty, doubt"
+Héroes y figuras históricas,Adjetivo,sabio/a,wise
+Identidad nacional y étnica,Verbo,heredar,to inherit
+Identidad nacional y étnica,Verbo,proceder,"to originate, come from"
+Identidad nacional y étnica,Verbo,convivir,to coexist
+Identidad nacional y étnica,Adjetivo,autóctono/a,"indigenous, native"
+Identidad nacional y étnica,Adjetivo,indígena,indigenous
+Identidad nacional y étnica,Adjetivo,nativo/a,native
+Identidad nacional y étnica,Sustantivo,la etnia,ethnic group
+Identidad nacional y étnica,Sustantivo,la etnicidad,ethnicity
+Identidad nacional y étnica,Sustantivo,la herencia,heritage
+Identidad nacional y étnica,Sustantivo,los rasgos,"features, traits"
+Identidad nacional y étnica,Sustantivo,las costumbres,customs
+Identidad nacional y étnica,Sustantivo,la patria,homeland
+Identidad nacional y étnica,Sustantivo,el colectivismo,collectivism
+Identidad nacional y étnica,Sustantivo,el individualismo,individualism
+Identidad nacional y étnica,Sustantivo,la conformidad,"conformity; approval, consent"
+Identidad nacional y étnica,Sustantivo,la compenetración,mutual understanding
+Identidad nacional y étnica,Sustantivo,la homogeneidad,homogeneity
+Identidad nacional y étnica,Sustantivo,el prejuicio,prejudice
+La autoestima,Verbo,complacer,to please
+La autoestima,Verbo,juzgar(se),to judge (oneself)
+La autoestima,Verbo,percibir,to perceive
+La autoestima,Verbo,dejar de (+ inf.),to stop / give up (doing…)
+La autoestima,Verbo,desenvolverse,"to manage, cope"
+La autoestima,Verbo,exponerse (a),to run the risk (of)
+La autoestima,Verbo,asumir,to take over; to accept / come to terms with
+La autoestima,Verbo,arriesgarse,to take a risk / chance
+La autoestima,Verbo,afrontar,"to confront, face"
+La autoestima,Sustantivo,la autoestima,self‑esteem
+La autoestima,Sustantivo,la ansiedad,anxiety
+La autoestima,Sustantivo,la inseguridad,insecurity
+La autoestima,Sustantivo,la culpa,guilt; blame
+La autoestima,Sustantivo,el optimismo,self‑confidence / optimism
+La autoestima,Adjetivo,inseguro/a,insecure; unsure
+La autoestima,Adjetivo,realista,realistic
+La ciencia y la ética,Verbo,padecer (de),to suffer (from)
+La ciencia y la ética,Verbo,plantear,"to suggest, consider"
+La ciencia y la ética,Verbo,perjudicar,"to damage, harm"
+La ciencia y la ética,Adjetivo,"polémico/a, controvertido/a",controversial
+La ciencia y la ética,Adjetivo,capaz (de),capable (of)
+La ciencia y la ética,Expresión / Etc.,a corto/largo plazo,short/long term
+La ciencia y la ética,Sustantivo,la genética,genetics
+La ciencia y la ética,Sustantivo,la clonación,cloning
+La ciencia y la ética,Sustantivo,el dilema moral,moral dilemma
+La ciencia y la ética,Sustantivo,los derechos,rights
+La ciencia y la ética,Sustantivo,la vacunación,vaccination
+La ciencia y la ética,Sustantivo,el riesgo,risk
+La ciencia y la ética,Sustantivo,la gravedad,"severity, seriousness"
+La ciencia y la ética,Sustantivo,el hallazgo,"discovery, find"
+La ciencia y la ética,Sustantivo,el daño,"damage, harm"
+La ciencia y la ética,Sustantivo,la sustentabilidad,sustainability
+La educación y las carreras profesionales,Verbo,cursar,to take a course
+La educación y las carreras profesionales,Verbo,solicitar,to apply
+La educación y las carreras profesionales,Verbo,sumar y restar,to add and subtract
+La educación y las carreras profesionales,Verbo,remediar,"to remedy, solve"
+La educación y las carreras profesionales,Verbo,egresar / graduarse (de),to graduate (from)
+La educación y las carreras profesionales,Verbo,matricularse / inscribirse,"to register, enroll, sign up"
+La educación y las carreras profesionales,Sustantivo,la beca,scholarship
+La educación y las carreras profesionales,Sustantivo,la formación,training
+La educación y las carreras profesionales,Sustantivo,la preparatoria / el instituto,high school
+La educación y las carreras profesionales,Sustantivo,el rendimiento (escolar),(school) performance
+La educación y las carreras profesionales,Sustantivo,la solicitud,application
+La educación y las carreras profesionales,Sustantivo,la discrepancia,discrepancy
+La educación y las carreras profesionales,Sustantivo,el ingreso / el salario / el sueldo,"income, earnings"
+La estructura de la familia,Verbo,criar,to raise (a child)
+La estructura de la familia,Verbo,mimar / consentir,to spoil
+La estructura de la familia,Verbo,parecerse (a),"to look alike, resemble"
+La estructura de la familia,Verbo,fortalecer,to strengthen
+La estructura de la familia,Sustantivo,la crianza,upbringing
+La estructura de la familia,Sustantivo,el proveedor,provider
+La estructura de la familia,Sustantivo,el vínculo,"bond, tie, link"
+La estructura de la familia,Sustantivo,los gemelos / los mellizos,twins
+La estructura de la familia,Sustantivo,el parentesco,"relationship, kinship"
+La estructura de la familia,Sustantivo,el pariente / el familiar,relative
+La estructura de la familia,Sustantivo,el/la hermanastro/a,stepbrother / stepsister
+La estructura de la familia,Sustantivo,el/la bisabuelo/a,great‑grandfather / great‑grandmother
+La estructura de la familia,Sustantivo,el padrino / la madrina,godfather / godmother
+La estructura de la familia,Sustantivo,el huérfano,orphan
+La estructura de la familia,Sustantivo,el viudo / la viuda,widower / widow
+La geografía humana,Verbo,habitar,"to live in, inhabit"
+La geografía humana,Verbo,establecerse,"to settle, establish oneself"
+La geografía humana,Verbo,mudarse,to move (from one house to another)
+La geografía humana,Verbo,crecer / subir / aumentar / ascender,"to grow, increase"
+La geografía humana,Verbo,disminuir / bajar / reducir,"to diminish, decrease"
+La geografía humana,Verbo,aislar,to isolate
+La geografía humana,Verbo,desplazar,to displace
+La geografía humana,Sustantivo,el/la refugiado/a,refugee
+La geografía humana,Sustantivo,el aislamiento,isolation
+La geografía humana,Sustantivo,el medio ambiente,environment
+La geografía humana,Sustantivo,la supervivencia,survival
+La geografía humana,Sustantivo,la migración,migration
+La geografía humana,Sustantivo,la frontera,border
+La geografía humana,Sustantivo,el patrón,pattern
+La geografía humana,Sustantivo,las zonas horarias,time zones
+La geografía humana,Sustantivo,la accesibilidad,accessibility
+La geografía humana,Sustantivo,el hogar,home
+La geografía humana,Sustantivo,la vivienda,housing
+La geografía humana,Adjetivo,disponible,available
+La geografía humana,Adjetivo,desarrollado,developed
+Las creencias personales,Verbo,comprometerse,to commit oneself
+Las creencias personales,Verbo,razonar,to reason
+Las creencias personales,Verbo,influir (en),to influence
+Las creencias personales,Verbo,pretender (que),to hope/expect; to claim (that)
+Las creencias personales,Verbo,abogar (por),"to stand for, advocate (for)"
+Las creencias personales,Adjetivo,indeciso/a,undecided
+Las creencias personales,Sustantivo,las normas,norms
+Las creencias personales,Sustantivo,los modales,manners
+Las creencias personales,Sustantivo,los principios,principles
+Las creencias personales,Sustantivo,el/la hipócrita,hypocrite
+Las creencias personales,Sustantivo,la creencia,belief
+Las creencias personales,Sustantivo,la conciencia,conscience
+Las creencias personales,Sustantivo,la virtud,virtue
+Las creencias personales,Sustantivo,el entorno,"surroundings, environment"
+Las innovaciones tecnológicas,Verbo,evolucionar,"to progress, evolve"
+Las innovaciones tecnológicas,Verbo,superar,"to exceed, surpass"
+Las innovaciones tecnológicas,Verbo,mejorar,to improve
+Las innovaciones tecnológicas,Adjetivo,rentable,profitable
+Las innovaciones tecnológicas,Adjetivo,incomparable / inigualable,"incomparable, unequaled, unbeatable"
+Las innovaciones tecnológicas,Sustantivo,la conveniencia,"advantage, convenience"
+Las innovaciones tecnológicas,Sustantivo,los emprendedores,entrepreneurs
+Las innovaciones tecnológicas,Sustantivo,el mejoramiento,improvement
+Las innovaciones tecnológicas,Sustantivo,el prototipo,prototype
+Las innovaciones tecnológicas,Sustantivo,la utilidad,usefulness
+Las innovaciones tecnológicas,Sustantivo,el adelanto,"advance(ment), step forward"
+Las redes sociales,Verbo,descargar,to download
+Las redes sociales,Verbo,subir,to upload
+Las redes sociales,Verbo,iniciar / cerrar la sesión,to log on / log off
+Las redes sociales,Verbo,publicar,"to post, publish"
+Las redes sociales,Verbo,bloquear,to block
+Las redes sociales,Verbo,rastrear,to track
+Las redes sociales,Verbo,vigilar,"to guard, monitor"
+Las redes sociales,Verbo,trinar / tuitear,to tweet
+Las redes sociales,Adjetivo,restringido/a,restricted
+Las redes sociales,Adjetivo,protegido/a,protected
+Las redes sociales,Sustantivo,la herramienta,tool
+Las redes sociales,Sustantivo,el perfil,profile
+Las redes sociales,Sustantivo,la seguridad,"safety, security"
+Las redes sociales,Sustantivo,el/la internauta,internet user
+Las redes sociales,Sustantivo,el/la seguidor/a,follower
+Las redes sociales,Sustantivo,el chisme,gossip
+Las redes sociales,Sustantivo,el foro,forum
+Las redes sociales,Sustantivo,la cuenta,account
+Las redes sociales,Sustantivo,el acoso (en línea),(cyber)bullying
+Las redes sociales,Sustantivo,el dispositivo,device
+Las redes sociales,Sustantivo,la contraseña / la clave,password
+Las redes sociales,Sustantivo,la pantalla táctil,touch screen
+Las redes sociales,Sustantivo,el enlace / el vínculo,link
+Las relaciones personales,Verbo,dejar plantado (a alguien),to stand someone up
+Las relaciones personales,Verbo,dejar (a alguien),to leave someone
+Las relaciones personales,Verbo,merecer,to deserve
+Las relaciones personales,Verbo,coquetear,to flirt
+Las relaciones personales,Verbo,tutear,to address informally (tú)
+Las relaciones personales,Verbo,llevarse (bien/mal/fatal),to get along (well/badly/terribly)
+Las relaciones personales,Sustantivo,el ánimo,spirit
+Las relaciones personales,Sustantivo,el compromiso,commitment
+Las relaciones personales,Sustantivo,la cita a ciegas,blind date
+Las relaciones personales,Sustantivo,la empatía,empathy
+Las relaciones personales,Sustantivo,la certeza / la certidumbre,certainty
+Las relaciones personales,Sustantivo,la media naranja,better half
+Las relaciones personales,Sustantivo,el alma gemela,soul mate
+Las relaciones personales,Adjetivo,perdurable,long‑lasting
+Las tradiciones y los valores sociales,Verbo,alentar,to encourage
+Las tradiciones y los valores sociales,Verbo,inculcar,to instill
+Las tradiciones y los valores sociales,Verbo,jubilarse (de),to retire (from)
+Las tradiciones y los valores sociales,Verbo,arrepentirse,to regret
+Las tradiciones y los valores sociales,Sustantivo,la ductilidad,flexibility
+Las tradiciones y los valores sociales,Sustantivo,la postura,"position, stance, opinion"
+Las tradiciones y los valores sociales,Sustantivo,la jubilación,retirement
+Las tradiciones y los valores sociales,Sustantivo,los altibajos,ups and downs
+Las tradiciones y los valores sociales,Sustantivo,las etapas de la vida,stages of life
+Las tradiciones y los valores sociales,Adjetivo,capaz (de),capable (of)
+Las tradiciones y los valores sociales,Adjetivo,(estar) harto/a (de),(to be) fed up (with)
+Las tradiciones y los valores sociales,Expresión / Etc.,a lo largo de,throughout
+Los estilos de vida,Verbo,aportar,to contribute
+Los estilos de vida,Verbo,tomar medidas,to take measures
+Los estilos de vida,Verbo,ahorrar,to save
+Los estilos de vida,Verbo,convertirse (en),"to turn (into), become"
+Los estilos de vida,Verbo,acostumbrarse (a),to become accustomed (to)
+Los estilos de vida,Sustantivo,el consumo,"consumption, use"
+Los estilos de vida,Sustantivo,el aporte,contribution
+Los estilos de vida,Sustantivo,el/la activista,activist
+Los estilos de vida,Adjetivo,costoso/a,costly
+Los estilos de vida,Adjetivo,"sano/a, saludable",healthy
+Los estilos de vida,Adjetivo,minimalista,minimalist
+Los fenómenos naturales,Verbo,mitigar,"to mitigate, reduce"
+Los fenómenos naturales,Verbo,sobrevivir,to survive
+Los fenómenos naturales,Verbo,precipitar,"to hasten, speed up"
+Los fenómenos naturales,Adjetivo,grave,serious
+Los fenómenos naturales,Adjetivo,imprevisible,"unpredictable, unforeseeable"
+Los fenómenos naturales,Adjetivo,peligroso/a,dangerous
+Los fenómenos naturales,Sustantivo,el desplazamiento,displacement
+Los fenómenos naturales,Sustantivo,la vulnerabilidad,"vulnerability, susceptibility"
+Los fenómenos naturales,Sustantivo,la inundación,flood
+Los fenómenos naturales,Sustantivo,la erosión,erosion
+Los fenómenos naturales,Sustantivo,la sequía,drought
+Los fenómenos naturales,Sustantivo,el terremoto / el sismo / el temblor,earthquake
+Los fenómenos naturales,Sustantivo,el tornado,tornado
+Los fenómenos naturales,Sustantivo,el derrumbe,landslide
+Los fenómenos naturales,Sustantivo,el huracán,hurricane
+Los fenómenos naturales,Sustantivo,la avalancha / el alud,avalanche
+Los fenómenos naturales,Sustantivo,el incendio (forestal),(forest) fire
+Los fenómenos naturales,Sustantivo,la epidemia,epidemic
+Los fenómenos naturales,Sustantivo,el clima,climate
+Los fenómenos naturales,Sustantivo,la amenaza,threat
+Los fenómenos naturales,Sustantivo,el peligro,danger
+Los intereses personales,Verbo,disfrutar,to enjoy
+Los intereses personales,Verbo,concentrarse (en),"to concentrate, focus (on)"
+Los intereses personales,Verbo,unirse (a) / hacerse miembro (de),to join (a group/team)
+Los intereses personales,Verbo,intentar,to try to
+Los intereses personales,Verbo,relajarse,to relax
+Los intereses personales,Verbo,animarse (a),to bring/drive yourself (to do something)
+Los intereses personales,Verbo,regodearse (en),to take delight/pleasure in
+Los intereses personales,Verbo,crecerse,to grow/mature (as a person)
+Los intereses personales,Verbo,elegir (e‑i),"to choose, select"
+Los intereses personales,Sustantivo,el reto,challenge
+Los intereses personales,Sustantivo,el afán,"eagerness, desire"
+Los intereses personales,Sustantivo,el carácter,"character, personality"
+Los intereses personales,Sustantivo,el placer,"pleasure, enjoyment"
+Los intereses personales,Sustantivo,el éxito,success
+Los intereses personales,Sustantivo,el fracaso,failure
+Los intereses personales,Sustantivo,el fervor,"zeal, enthusiasm"
+Los intereses personales,Sustantivo,la tertulia,"gathering, get‑together"
+Los intereses personales,Adjetivo,ambicioso/a,"ambitious, hard‑working"
+Los intereses personales,Adjetivo,materialista,materialistic
+Los viajes / El trabajo voluntario,Verbo,recorrer,to travel around
+Los viajes / El trabajo voluntario,Verbo,pernoctar,to stay overnight
+Los viajes / El trabajo voluntario,Verbo,trasnochar,to stay up late / all night
+Los viajes / El trabajo voluntario,Verbo,percatarse (de),"to notice, realize"
+Los viajes / El trabajo voluntario,Verbo,viajar al extranjero,to travel abroad
+Los viajes / El trabajo voluntario,Verbo,aprovechar,to make the most of (positive)
+Los viajes / El trabajo voluntario,Verbo,aprovecharse de,to take advantage of (negative)
+Los viajes / El trabajo voluntario,Verbo,hospedarse,to lodge
+Los viajes / El trabajo voluntario,Verbo,alojarse,to stay
+Los viajes / El trabajo voluntario,Sustantivo,el recorrido / el trayecto,"journey, route"
+Los viajes / El trabajo voluntario,Sustantivo,el turismo,tourism
+Los viajes / El trabajo voluntario,Sustantivo,el/la turista,tourist
+Los viajes / El trabajo voluntario,Sustantivo,el huésped,guest
+Los viajes / El trabajo voluntario,Sustantivo,el boleto / el billete,ticket
+Los viajes / El trabajo voluntario,Sustantivo,la ubicación,location
+Los viajes / El trabajo voluntario,Sustantivo,el retraso / la demora,delay
+Los viajes / El trabajo voluntario,Sustantivo,el itinerario,itinerary
+Los viajes / El trabajo voluntario,Sustantivo,el albergue,"inn, hostel"
+Medio ambiente,Verbo,derretir,to melt
+Medio ambiente,Verbo,desperdiciar,to waste
+Medio ambiente,Verbo,contaminar,to pollute
+Medio ambiente,Verbo,dañar,"to damage, harm"
+Medio ambiente,Adjetivo,sostenible / sustentable,sustainable
+Medio ambiente,Adjetivo,renovable,renewable
+Medio ambiente,Sustantivo,la sustentabilidad / la sostenibilidad,sustainability
+Medio ambiente,Sustantivo,el calentamiento global,global warming
+Medio ambiente,Sustantivo,el derretimiento,"melting, thawing"
+Medio ambiente,Sustantivo,el efecto invernadero,greenhouse effect
+Medio ambiente,Sustantivo,la atmósfera,atmosphere
+Medio ambiente,Sustantivo,el reciclaje,recycling
+Medio ambiente,Sustantivo,la contaminación,pollution
+Medio ambiente,Sustantivo,la industrialización,industrialization
+Medio ambiente,Sustantivo,el (alto) consumo,(high/over) consumption
+Medio ambiente,Sustantivo,la desforestación,deforestation
+Pensamiento filosófico y religión,Verbo,rezar / orar,to pray
+Pensamiento filosófico y religión,Verbo,bendecir,to bless
+Pensamiento filosófico y religión,Verbo,alabar,"to worship, praise"
+Pensamiento filosófico y religión,Adjetivo,laico/a,"lay, secular (non‑religious)"
+Pensamiento filosófico y religión,Sustantivo,la fe,faith
+Pensamiento filosófico y religión,Sustantivo,la Semana Santa,Holy Week
+Pensamiento filosófico y religión,Sustantivo,el sacerdote / el cura,priest
+Pensamiento filosófico y religión,Sustantivo,la creencia,belief
+Pensamiento filosófico y religión,Sustantivo,el/la creyente,believer
+Pensamiento filosófico y religión,Sustantivo,la capilla,chapel
+Pensamiento filosófico y religión,Sustantivo,el bautizo,baptism
+Pensamiento filosófico y religión,Sustantivo,el/la ateo/a,atheist
+Pensamiento filosófico y religión,Sustantivo,el alma (fem.),soul
+Pensamiento filosófico y religión,Sustantivo,el pecado,sin
+Pensamiento filosófico y religión,Sustantivo,los ritos,"rites, rituals"
+Población y demografía,Verbo,aumentar,to increase
+Población y demografía,Verbo,disminuir,to decrease
+Población y demografía,Verbo,extinguirse,to become extinct
+Población y demografía,Verbo,poblar,to populate
+Población y demografía,Verbo,preservar,to preserve
+Población y demografía,Verbo,envejecer,to age
+Población y demografía,Verbo,albergar,to house
+Población y demografía,Sustantivo,el desafío,challenge
+Población y demografía,Sustantivo,el aumento,increase
+Población y demografía,Sustantivo,el alza (fem.),the rise
+Población y demografía,Sustantivo,la disminución,decrease
+Población y demografía,Sustantivo,los ancianos,elderly
+Población y demografía,Sustantivo,el envejecimiento,aging
+Población y demografía,Sustantivo,el desplazamiento,displacement
+Población y demografía,Sustantivo,la hambruna,famine
+Población y demografía,Sustantivo,la escasez,"shortage, scarcity"
+Población y demografía,Sustantivo,la sobrepoblación,overpopulation
+Población y demografía,Sustantivo,la preservación,preservation
+Población y demografía,Sustantivo,la natalidad,birth rate
+Población y demografía,Adjetivo,desafiante,challenging
+Población y demografía,Adjetivo,escaso/a,scarce
+Población y demografía,Adjetivo,mundial,"global, world‑wide"
+Población y demografía,Adjetivo,"desarrollado/a, urbanizado/a",developed
+Población y demografía,Adjetivo,subdesarrollado/a,underdeveloped
+Salud y medicina,Verbo,estornudar,to sneeze
+Salud y medicina,Verbo,reposar,to rest
+Salud y medicina,Verbo,empeorar,to worsen
+Salud y medicina,Verbo,sanar,"to cure, heal, make healthy"
+Salud y medicina,Verbo,carecer (de),to lack
+Salud y medicina,Verbo,resfriarse,to catch a cold
+Salud y medicina,Adjetivo,embarazada,pregnant
+Salud y medicina,Adjetivo,fiable / confiable,"reliable, trustworthy"
+Salud y medicina,Adjetivo,paralítico/a,paralyzed
+Salud y medicina,Adjetivo,crédulo/a,"credulous, gullible"
+Salud y medicina,Sustantivo,el escalofrío,"chills, shiver"
+Salud y medicina,Sustantivo,el mareo,dizziness; motion sickness
+Salud y medicina,Sustantivo,el estornudo,sneeze
+Salud y medicina,Sustantivo,la migraña,migraine
+Salud y medicina,Sustantivo,la debilidad,weakness
+Salud y medicina,Sustantivo,el cansancio,tiredness
+Salud y medicina,Sustantivo,el embarazo,pregnancy
+Salud y medicina,Sustantivo,el insomnio,insomnia; sleeplessness
+Salud y medicina,Sustantivo,la erupción / el sarpullido,rash
+Salud y medicina,Sustantivo,la gripe / la influenza,flu
+Salud y medicina,Sustantivo,el resfriado / el resfrío / el catarro,cold
+Salud y medicina,Sustantivo,la fiebre,fever
+Temas económicos,Verbo,recaudar,"to collect, raise (money)"
+Temas económicos,Verbo,invertir,to invest
+Temas económicos,Verbo,arriesgar,to risk
+Temas económicos,Sustantivo,el préstamo,loan
+Temas económicos,Sustantivo,la subvención,"grant, subsidy"
+Temas económicos,Sustantivo,el mercado de valores / la bolsa,stock market
+Temas económicos,Sustantivo,los impuestos,taxes
+Temas económicos,Sustantivo,el presupuesto,budget
+Temas económicos,Sustantivo,los ahorros,savings
+Temas económicos,Sustantivo,la empresa / el negocio,business
+Temas económicos,Sustantivo,el ingreso,income
+Temas económicos,Sustantivo,la inversión,investment
+Temas económicos,Sustantivo,la deuda,debt
+Temas económicos,Sustantivo,el gasto,expense
+Temas económicos,Sustantivo,la ganancia,"earnings, profit"
+Temas económicos,Sustantivo,la huelga / el paro,strike
+Tradiciones y valores,Verbo,imponer,to impose
+Tradiciones y valores,Verbo,rebelarse,to rebel against
+Tradiciones y valores,Verbo,discutir,to argue
+Tradiciones y valores,Verbo,valorar(se),to value (oneself)
+Tradiciones y valores,Verbo,soler (o‑ue) + inf.,to usually / be accustomed to
+Tradiciones y valores,Verbo,concertar (e‑ie),"to arrange, coordinate"
+Tradiciones y valores,Verbo,contradecir,to contradict
+Tradiciones y valores,Verbo,inculcar,to instill
+Tradiciones y valores,Verbo,castigar,to punish
+Tradiciones y valores,Verbo,(des)obedecer,to (dis)obey
+Tradiciones y valores,Verbo,exponer,"to show, expose"
+Tradiciones y valores,Verbo,tutear,to address informally (tú)
+Tradiciones y valores,Sustantivo,la pertenencia,belonging
+Tradiciones y valores,Sustantivo,el acuerdo,"agreement, understanding"
+Tradiciones y valores,Sustantivo,los lazos familiares,family ties
+Tradiciones y valores,Sustantivo,la sobreprotección,overprotection
+Tradiciones y valores,Sustantivo,el legado,legacy
+Tradiciones y valores,Adjetivo,incongruente,illogical
+Tradiciones y valores,Adjetivo,fastidiado/a,"fed up, bored"
+    </textarea>
+    <button onclick="loadCSV()" style="display:none;">Load CSV</button>
+
+    <br><br>
+
+    <select id="contextFilter" onchange="pickNewCard()" style="width:100%; padding:8px; font-size:16px;">
+        <option value="All">All</option>
+    </select>
+
+    <hr><br>
+
+    <div id="englishWord" class="english">English Word</div>
+    <div id="meta" class="meta">Context • Category</div>
+
+    <input id="spanishInput" placeholder="Type the Spanish word...">
+
+    <div class="accent-buttons">
+        <button onclick="addAccent('á')">á</button>
+        <button onclick="addAccent('é')">é</button>
+        <button onclick="addAccent('í')">í</button>
+        <button onclick="addAccent('ó')">ó</button>
+        <button onclick="addAccent('ú')">ú</button>
+        <button onclick="addAccent('ü')">ü</button>
+        <button onclick="addAccent('ñ')">ñ</button>
+    </div>
+
+    <button id="checkBtn" onclick="checkAnswer()">Check</button>
+
+    <div id="answer"></div>
+
+</div>
+
+<script>
+let cards = [];
+let filteredCards = [];
+let currentCard = null;
+let lastCard = null;
+
+let correctCount = 0;
+let incorrectCount = 0;
+
+function updateScore() {
+    const total = correctCount + incorrectCount;
+    const accuracy = total === 0 ? 0 : Math.round((correctCount / total) * 100);
+
+    document.getElementById("scoreCorrect").textContent = `Correct: ${correctCount}`;
+    document.getElementById("scoreIncorrect").textContent = `Incorrect: ${incorrectCount}`;
+    document.getElementById("scoreAccuracy").textContent = `Accuracy: ${accuracy}%`;
+}
+
+
+function normalize(str) {
+    let s = str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")   // remove accents
+        .toLowerCase()
+        .trim();
+
+    // Remove articles like el/la, los/las
+    s = s.replace(/\b(el|la|los|las)\b/g, "").trim();
+
+    // Expand gender forms: escaso/a → escaso escasa
+    if (s.includes("/")) {
+        let parts = s.split("/");
+        if (parts[0].length > 0) {
+            let base = parts[0];
+            let alt = base.slice(0, -1) + parts[1]; // escaso + a → escasa
+            s = base + " " + alt;
+        }
+    }
+
+    // Remove parentheses: abogar (por) → abogar por
+    s = s.replace(/[()]/g, " ");
+
+    // Collapse multiple spaces
+    s = s.replace(/\s+/g, " ").trim();
+
+    return s;
+}
+
+
+function addAccent(char) {
+    const input = document.getElementById("spanishInput");
+    input.value += char;
+    input.focus();
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"' && line[i + 1] === '"') {
+            // Escaped quote
+            current += '"';
+            i++;
+        } else if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function loadCSV() {
+    const csv = document.getElementById("csvInput").value.trim().split("\n");
+    cards = [];
+    const contexts = new Set();
+
+    for (let i = 1; i < csv.length; i++) {
+        const line = parseCSVLine(csv[i]);
+        if (line.length < 4) continue;
+
+        const card = {
+            context: line[0],
+            category: line[1],
+            spanish: line[2],
+            english: line[3]
+        };
+
+        cards.push(card);
+        contexts.add(card.context);
+    }
+
+    const dropdown = document.getElementById("contextFilter");
+    dropdown.innerHTML = `<option value="All">All</option>`;
+    contexts.forEach(ctx => {
+        dropdown.innerHTML += `<option value="${ctx}">${ctx}</option>`;
+    });
+
+    pickNewCard();
+}
+
+
+function pickNewCard() {
+    const selected = document.getElementById("contextFilter").value;
+
+    filteredCards = selected === "All"
+        ? cards
+        : cards.filter(c => c.context === selected);
+
+    if (filteredCards.length === 0) return;
+
+    let nextCard = null;
+
+    do {
+        nextCard = filteredCards[Math.floor(Math.random() * filteredCards.length)];
+    } while (nextCard === lastCard && filteredCards.length > 1);
+
+    lastCard = nextCard;
+    currentCard = nextCard;
+
+    document.getElementById("englishWord").textContent = currentCard.english;
+    document.getElementById("meta").textContent = currentCard.context + " • " + currentCard.category;
+
+    const input = document.getElementById("spanishInput");
+    input.value = "";
+    input.style.borderColor = "#ccc";
+
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("checkBtn").textContent = "Check";
+}
+
+function checkAnswer() {
+    const btn = document.getElementById("checkBtn");
+    const input = document.getElementById("spanishInput");
+
+    // If we're on "Next", load a new card
+if (btn.textContent === "Next") {
+    pickNewCard();
+    input.value = "";
+    input.focus();
+
+    // Reset background
+    const card = document.querySelector(".card");
+    card.classList.remove("correct", "incorrect");
+
+    return;
+}
+
+
+    // --- CHECK MODE ---
+const user = normalize(input.value);
+const truth = normalize(currentCard.spanish);
+
+// Split truth into individual acceptable words
+let truthWords = truth.split(" ");
+
+let isCorrect =
+    user.length > 0 &&
+    truthWords.some(w =>
+        w.startsWith(user) || user.startsWith(w)
+    );
+
+const card = document.querySelector(".card");
+
+// Clear previous background state
+card.classList.remove("correct", "incorrect");
+
+if (isCorrect) {
+    card.classList.add("correct");
+    correctCount++;
+    updateScore();
+} else {
+    card.classList.add("incorrect");
+    incorrectCount++;
+    updateScore();
+}
+
+    document.getElementById("answer").textContent = currentCard.spanish;
+    document.getElementById("answer").style.display = "block";
+    btn.textContent = "Next";
+
+    // Keep focus on the textbox
+    input.focus();
+}
+
+document.getElementById("spanishInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        checkAnswer();
+    }
+});
+
+window.onload = function() {
+    loadCSV();
+};
+
+</script>
+
+</body>
+</html>
