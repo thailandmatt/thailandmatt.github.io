@@ -168,7 +168,7 @@ const TERR = {
 const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
 const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
 // island nations always get a ring (around the whole archipelago)
-const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","Palau","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
+const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","New Zealand","Palau","Papua New Guinea","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
 const RING_BELOW_PX = 8;   // show a ring while a country's on-screen size is below this
 const disp = n => DISPLAY[n] || (TERR[n] && TERR[n][0]) || n;
 const canon = n => ALIAS[n] || n;
@@ -245,7 +245,14 @@ for (const f of features) {
   if (!contOf[name] && !isTerr) continue;
   const isle = ISLANDS.has(name);
   let [[x0, y0], [x1, y1]] = path.bounds(f);
-  if (isle && Math.max(x1 - x0, y1 - y0) > 60) [[x0, y0], [x1, y1]] = path.bounds(mainPart(f));  // too spread out (e.g. Kiribati)
+  if (isle && Math.max(x1 - x0, y1 - y0) > 60) {   // too spread out (Kiribati, NZ + Chathams): ring the biggest part and its neighbours
+    const m = path.bounds(mainPart(f)), mc = [(m[0][0] + m[1][0]) / 2, (m[0][1] + m[1][1]) / 2];
+    [[x0, y0], [x1, y1]] = m;
+    if (f.geometry.type === "MultiPolygon") for (const coords of f.geometry.coordinates) {
+      const [[a, b], [c, d]] = path.bounds({ type: "Polygon", coordinates: coords });
+      if (Math.hypot((a + c) / 2 - mc[0], (b + d) / 2 - mc[1]) < 30) { x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d); }
+    }
+  }
   if (!isle) [[x0, y0], [x1, y1]] = path.bounds(mainPart(f));
   const size = Math.max(x1 - x0, y1 - y0);
   const tiny = size < RING_BELOW_PX * 1.5;
