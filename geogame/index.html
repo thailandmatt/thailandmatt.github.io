@@ -162,6 +162,25 @@ const H = Math.ceil(path.bounds(sphere)[1][1]);
 svg.attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio", "xMidYMid meet");
 
 let features = topojson.feature(TOPO, TOPO.objects.countries).features.filter(f => !SKIP_DRAW.has(f.properties.name));
+// Overseas pieces of a country (French Guiana, Svalbard, Caribbean Netherlands, ...) are split off
+// into grey, unclickable territory features so they don't count as part of the parent country.
+const OVERSEAS = {
+  "France": ([lon, lat]) => lon < -10 || lon > 15,
+  "Netherlands": ([lon, lat]) => lon < -10,
+  "Norway": ([lon, lat]) => lat > 74 || lon < -5,
+  "New Zealand": ([lon, lat]) => lat > -20
+};
+features = features.flatMap(f => {
+  const test = OVERSEAS[f.properties.name];
+  if (!test || f.geometry.type !== "MultiPolygon") return [f];
+  const mid = poly => { const r = poly[0], lo = r.map(p => p[0]), la = r.map(p => p[1]);
+    return [(Math.min(...lo) + Math.max(...lo)) / 2, (Math.min(...la) + Math.max(...la)) / 2]; };
+  const home = f.geometry.coordinates.filter(p => !test(mid(p)));
+  const away = f.geometry.coordinates.filter(p => test(mid(p)));
+  const out = [{ ...f, geometry: { type: "MultiPolygon", coordinates: home } }];
+  if (away.length) out.push({ type: "Feature", properties: { name: f.properties.name + " (overseas territory)" }, geometry: { type: "MultiPolygon", coordinates: away } });
+  return out;
+});
 // Tuvalu is too small for the 1:50m dataset — add a tiny stand-in polygon
 features.push({ type: "Feature", properties: { name: "Tuvalu" }, geometry: d3.geoCircle().center([179.2, -8.5]).radius(0.25)() });
 
