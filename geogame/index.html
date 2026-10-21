@@ -245,31 +245,40 @@ for (const f of features) {
   const isTerr = !!TERR[name];
   if (!contOf[name] && !isTerr) continue;
   const isle = ISLANDS.has(name);
-  let [[x0, y0], [x1, y1]] = path.bounds(f);
-  if (Math.max(x1 - x0, y1 - y0) > 60) {   // too spread out (Kiribati, NZ + Chathams): ring the biggest part and its neighbours
-    const m = path.bounds(mainPart(f)), mc = [(m[0][0] + m[1][0]) / 2, (m[0][1] + m[1][1]) / 2];
-    [[x0, y0], [x1, y1]] = m;
-    if (f.geometry.type === "MultiPolygon") for (const coords of f.geometry.coordinates) {
-      const [[a, b], [c, d]] = path.bounds({ type: "Polygon", coordinates: coords });
-      if (Math.hypot((a + c) / 2 - mc[0], (b + d) / 2 - mc[1]) < 30) { x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d); }
-    }
+  let polys = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
+  const pb = coords => path.bounds({ type: "Polygon", coordinates: coords });
+  const [[ax, ay], [bx, by]] = path.bounds(f);
+  if (Math.max(bx - ax, by - ay) > 60) {   // too spread out (Kiribati, NZ + Chathams): keep the biggest part and its neighbours
+    const main = mainPart(f).geometry.coordinates, [[a, b], [c, d]] = pb(main), mc = [(a + c) / 2, (b + d) / 2];
+    polys = polys.filter(p => { const [[e, g], [h, i]] = pb(p); return Math.hypot((e + h) / 2 - mc[0], (g + i) / 2 - mc[1]) < 30; });
   }
-  const size = Math.max(x1 - x0, y1 - y0);
+  const pts = polys.flatMap(p => p[0].map(c => projection(c)));
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
   const tiny = size < RING_BELOW_PX * 1.5;
   if (isle || tiny) {   // non-island rings are hidden again once zoomed in (territories keep theirs)
-    ringData.push({ name, size, always: isle || (isTerr && tiny), cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+    ringData.push({ name, size, always: isle || (isTerr && tiny), hull: d3.polygonHull(pts) || pts });
   }
 }
 ringData.sort((a, b) => b.size - a.size);   // smallest drawn last = on top
-const rings = gRings.selectAll("circle").data(ringData).join("circle").attr("class", "ring")
-  .attr("cx", d => d.cx).attr("cy", d => d.cy);
+const rings = gRings.selectAll("path").data(ringData).join("path").attr("class", "ring");
+
+// A smooth blob hugging the country's islands, padded by `pad` map units (= constant screen px)
+const blobLine = d3.line().curve(d3.curveCatmullRomClosed.alpha(0.5));
+function blob(hull, pad) {
+  const pts = [];
+  for (const [x, y] of hull) for (let i = 0; i < 10; i++) pts.push([x + pad * Math.cos(i * Math.PI / 5), y + pad * Math.sin(i * Math.PI / 5)]);
+  return blobLine(d3.polygonHull(pts));
+}
 
 let k = 1;
 function layoutRings() {
-  rings.style("display", d => isPlayable(d.name) && (d.always || d.size * k < RING_BELOW_PX) ? null : "none")
-    .attr("r", d => Math.max(6, d.size * k / 2 + 4) / k)
-    .attr("stroke-width", 1.6 / k)
-    .attr("stroke-dasharray", `${3 / k} ${3 / k}`);
+  rings.attr("stroke-width", 1.6 / k).attr("stroke-dasharray", `${3 / k} ${3 / k}`)
+    .each(function (d) {
+      const on = isPlayable(d.name) && (d.always || d.size * k < RING_BELOW_PX);
+      this.style.display = on ? null : "none";
+      if (on) this.setAttribute("d", blob(d.hull, 6 / k));
+    });
 }
 
 const zoom = d3.zoom().scaleExtent([1, 80]).translateExtent([[0, 0], [W, H]]).extent([[0, 0], [W, H]])
