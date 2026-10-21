@@ -163,7 +163,7 @@ const TERR = {
   "Svalbard":["Svalbard (Norway)","Europe"],"Jan Mayen":["Jan Mayen (Norway)","Europe"],
   "Hong Kong":["Hong Kong (China)","Asia"],"Macao":["Macao (China)","Asia"],"W. Sahara":["Western Sahara (disputed)","Africa"],
   "Norfolk Island":["Norfolk Island (Australia)","Oceania"],
-  "Canary Islands":["Canary Islands (Spain)","Africa"],"Azores":["Azores (Portugal)","Europe"],"Madeira":["Madeira (Portugal)","Africa"]
+  "Canary Islands":["Canary Islands (Spain)","Africa"],"Azores":["Azores (Portugal)","Europe"],"Madeira":["Madeira (Portugal)","Africa"],"Galápagos":["Galápagos Islands (Ecuador)","South America"]
 };
 const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
 const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
@@ -195,6 +195,7 @@ let features = topojson.feature(TOPO, TOPO.objects.countries).features.filter(f 
 const OVERSEAS = {
   "France": [["French Guiana", ([lo, la]) => lo < -50 && la < 10], ["Guadeloupe", ([lo, la]) => lo < -55 && la > 15.3],
              ["Martinique", ([lo, la]) => lo < -55 && la <= 15.3], ["Mayotte", ([lo, la]) => lo > 40 && lo < 50], ["Réunion", ([lo, la]) => lo > 50]],
+  "Ecuador": [["Galápagos", ([lo, la]) => lo < -85]],
   "Spain": [["Canary Islands", ([lo, la]) => lo < -10]],
   "Portugal": [["Madeira", ([lo, la]) => lo > -20 && lo < -10], ["Azores", ([lo, la]) => lo <= -20]],
   "Netherlands": [["Caribbean Netherlands", ([lo, la]) => lo < -10]],
