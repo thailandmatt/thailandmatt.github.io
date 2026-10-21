@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click the Country</title>
+<style>
+  :root {
+    --ocean: #dbeaf4; --sphere: #c4e0f2; --land: #f4ecd8; --border: #a39879;
+    --out: #e4e4e4; --terr: #ebe5d6;
+    --ok: #6cc070; --retry: #f2c94c; --fail: #e57373; --ink: #1d2b36; --accent: #2b6cb0;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--ocean); }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 18px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #c8d4dc; min-height: 54px; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; }
+  #prompt { font-size: 22px; flex: 1; min-width: 200px; }
+  #prompt b { color: var(--accent); }
+  .stat { font-variant-numeric: tabular-nums; color: #526370; font-size: 14px; }
+  button { font: inherit; cursor: pointer; border: 1px solid #b6c3cc; background: #fff; border-radius: 8px; padding: 6px 12px; }
+  button:hover { background: #eef3f7; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; padding: 10px 22px; font-size: 16px; }
+  button.primary:hover { background: #245a96; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #mapwrap { position: relative; flex: 1; min-height: 0; }
+  svg { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  svg:active { cursor: grabbing; }
+  .sphere { fill: var(--sphere); }
+  .country { fill: var(--land); stroke: var(--border); stroke-width: .6px; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .15s; }
+  .country.terr { fill: var(--terr); cursor: default; }
+  .country.out { fill: var(--out); cursor: default; }
+  .country.hover:not(.out):not(.terr) { fill: #ffe9a8; }
+  .country.correct { fill: var(--ok); }
+  .country.retry { fill: var(--retry); }
+  .country.failed { fill: var(--fail); }
+  .country.flash { fill: #ff8a80 !important; }
+  .country.reveal { animation: blink .5s ease-in-out 4; }
+  @keyframes blink { 50% { fill: #fff; } }
+  .ring { fill: transparent; stroke: #3a4a57; pointer-events: all; cursor: pointer; }
+  .ring.out { stroke: #b5b5b5; cursor: default; }
+  .ring.hover { stroke: #d17a00; }
+  .ring.correct { stroke: #2f8f3a; } .ring.retry { stroke: #b88a00; } .ring.failed { stroke: #c62828; }
+  #toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(29,43,54,.92); color: #fff; padding: 8px 16px; border-radius: 999px; font-size: 15px; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+  #zoomctl { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  #zoomctl button { width: 36px; height: 36px; padding: 0; font-size: 20px; line-height: 1; }
+  #legend { position: absolute; left: 12px; bottom: 12px; background: rgba(255,255,255,.9); border-radius: 8px; padding: 6px 10px; font-size: 12px; display: flex; gap: 12px; }
+  #legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; border: 1px solid rgba(0,0,0,.2); }
+  .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(219,234,244,.55); z-index: 5; padding: 12px; overflow: auto; }
+  .overlay.hidden { display: none; }
+  .card { background: #fff; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.2); padding: 22px 26px; width: min(480px, 100%); max-height: 100%; overflow: auto; }
+  .card h2 { margin: 0 0 14px; font-size: 22px; }
+  .card label.row { display: block; font-weight: 600; margin: 14px 0 6px; }
+  .sliderline { display: flex; align-items: center; gap: 10px; }
+  .sliderline input[type=range] { flex: 1; }
+  #countOut { min-width: 3ch; text-align: right; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips label { border: 1px solid #b6c3cc; border-radius: 999px; padding: 5px 12px; cursor: pointer; user-select: none; font-size: 14px; }
+  .chips input { display: none; }
+  .chips label:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chips small { opacity: .75; }
+  select { font: inherit; padding: 5px 8px; border-radius: 8px; border: 1px solid #b6c3cc; }
+  .small { font-size: 13px; color: #526370; margin-top: 4px; }
+  #missed { max-height: 180px; overflow: auto; font-size: 14px; margin: 8px 0 0; padding-left: 20px; }
+  .big { font-size: 40px; font-weight: 800; margin: 4px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌍 Click the Country</h1>
+  <div id="prompt"></div>
+  <span class="stat" id="progress"></span>
+  <span class="stat" id="score"></span>
+  <button id="skipBtn" hidden>Skip</button>
+  <button id="quitBtn" hidden>Quit</button>
+</header>
+
+<div id="mapwrap">
+  <svg id="map"></svg>
+  <div id="zoomctl">
+    <button id="zin" title="Zoom in">+</button>
+    <button id="zout" title="Zoom out">−</button>
+    <button id="zreset" title="Reset view" style="font-size:14px">⟲</button>
+  </div>
+  <div id="legend"><span><i style="background:var(--ok)"></i>First try</span><span><i style="background:var(--retry)"></i>Needed retries</span><span><i style="background:var(--fail)"></i>Missed</span></div>
+  <div id="toast"></div>
+
+  <div class="overlay" id="setup">
+    <div class="card">
+      <h2>New game</h2>
+      <label class="row">Continents</label>
+      <div class="chips" id="chips"></div>
+      <label class="row">Number of countries <span class="small" id="poolNote"></span></label>
+      <div class="sliderline">
+        <input type="range" id="count" min="1" max="10" value="10">
+        <span id="countOut">10</span>
+        <button id="allBtn" type="button">All</button>
+      </div>
+      <label class="row">Guesses allowed per country</label>
+      <select id="attempts"><option value="0" selected>Unlimited (score = total clicks)</option><option value="1">1 (one shot)</option><option value="3">3</option><option value="5">5</option></select>
+      <p class="small">Tiny island &amp; city states are circled with a dotted ring — click anywhere inside the ring. Scroll or pinch to zoom, drag to pan.</p>
+      <div style="text-align:right;margin-top:16px"><button class="primary" id="startBtn">Start</button></div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="endcard">
+    <div class="card">
+      <h2>Game over</h2>
+      <div class="big" id="finalScore"></div>
+      <div id="finalDetail" class="small"></div>
+      <div id="missedWrap" hidden><b>Missed:</b><ol id="missed"></ol></div>
+      <div style="text-align:right;margin-top:16px"><button class="primary" id="againBtn">Play again</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="d3.min.js"></script>
+<script src="topojson-client.min.js"></script>
+<script src="data.js"></script>
+<script>
+// ---------- Data tables ----------
+const CONTINENTS = {
+  "Africa": ["Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde","Cameroon","Central African Rep.","Chad","Comoros","Congo","Dem. Rep. Congo","Côte d'Ivoire","Djibouti","Egypt","Eq. Guinea","Eritrea","eSwatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","São Tomé and Principe","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","S. Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"],
+  "Europe": ["Albania","Andorra","Austria","Belarus","Belgium","Bosnia and Herz.","Bulgaria","Croatia","Cyprus","Czechia","Denmark","Estonia","Finland","France","Germany","Greece","Hungary","Iceland","Ireland","Italy","Kosovo","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta","Moldova","Monaco","Montenegro","Netherlands","Macedonia","Norway","Poland","Portugal","Romania","Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Ukraine","United Kingdom","Vatican"],
+  "Asia": ["Afghanistan","Armenia","Azerbaijan","Bahrain","Bangladesh","Bhutan","Brunei","Cambodia","China","Georgia","India","Indonesia","Iran","Iraq","Israel","Japan","Jordan","Kazakhstan","Kuwait","Kyrgyzstan","Laos","Lebanon","Malaysia","Maldives","Mongolia","Myanmar","Nepal","North Korea","Oman","Pakistan","Palestine","Philippines","Qatar","Saudi Arabia","Singapore","South Korea","Sri Lanka","Syria","Taiwan","Tajikistan","Thailand","Timor-Leste","Turkey","Turkmenistan","United Arab Emirates","Uzbekistan","Vietnam","Yemen"],
+  "North America": ["Antigua and Barb.","Bahamas","Barbados","Belize","Canada","Costa Rica","Cuba","Dominica","Dominican Rep.","El Salvador","Grenada","Guatemala","Haiti","Honduras","Jamaica","Mexico","Nicaragua","Panama","St. Kitts and Nevis","Saint Lucia","St. Vin. and Gren.","Trinidad and Tobago","United States of America"],
+  "South America": ["Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Guyana","Paraguay","Peru","Suriname","Uruguay","Venezuela"],
+  "Oceania": ["Australia","Fiji","Kiribati","Marshall Is.","Micronesia","Nauru","New Zealand","Palau","Papua New Guinea","Samoa","Solomon Is.","Tonga","Tuvalu","Vanuatu"]
+};
+// lon/lat boxes [west, south, east, north] used to zoom to the chosen continents
+const BOXES = {
+  "Africa": [-20,-36,53,38], "Europe": [-25,34,45,72], "Asia": [26,-11,146,56],
+  "North America": [-170,6,-52,72], "South America": [-82,-56,-34,13], "Oceania": [110,-48,180,12]
+};
+const DISPLAY = {
+  "Macedonia":"North Macedonia","Eq. Guinea":"Equatorial Guinea","Bosnia and Herz.":"Bosnia and Herzegovina",
+  "Central African Rep.":"Central African Republic","Dem. Rep. Congo":"DR Congo","Congo":"Republic of the Congo",
+  "Dominican Rep.":"Dominican Republic","eSwatini":"Eswatini","S. Sudan":"South Sudan","Solomon Is.":"Solomon Islands",
+  "Marshall Is.":"Marshall Islands","St. Kitts and Nevis":"Saint Kitts and Nevis","St. Vin. and Gren.":"Saint Vincent and the Grenadines",
+  "Antigua and Barb.":"Antigua and Barbuda","São Tomé and Principe":"São Tomé and Príncipe","Vatican":"Vatican City",
+  "Micronesia":"Micronesia (Federated States of)","Cabo Verde":"Cabo Verde (Cape Verde)"
+};
+const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
+const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
+const RING_BELOW_PX = 8;   // show a ring while a country's on-screen size is below this
+const disp = n => DISPLAY[n] || n;
+const canon = n => ALIAS[n] || n;
+const contOf = {};
+for (const [c, list] of Object.entries(CONTINENTS)) list.forEach(n => contOf[n] = c);
+
+// ---------- Map ----------
+const W = 960;
+const svg = d3.select("#map");
+const projection = d3.geoNaturalEarth1();
+const path = d3.geoPath(projection);
+const sphere = { type: "Sphere" };
+projection.fitWidth(W, sphere);
+const H = Math.ceil(path.bounds(sphere)[1][1]);
+svg.attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio", "xMidYMid meet");
+
+let features = topojson.feature(TOPO, TOPO.objects.countries).features.filter(f => !SKIP_DRAW.has(f.properties.name));
+// Tuvalu is too small for the 1:50m dataset — add a tiny stand-in polygon
+features.push({ type: "Feature", properties: { name: "Tuvalu" }, geometry: d3.geoCircle().center([179.2, -8.5]).radius(0.25)() });
+
+const gMain = svg.append("g");
+gMain.append("path").attr("class", "sphere").attr("d", path(sphere));
+const gLand = gMain.append("g");
+const gRings = gMain.append("g");
+
+const paths = gLand.selectAll("path").data(features).join("path")
+  .attr("class", d => "country" + (contOf[canon(d.properties.name)] ? "" : " terr"))
+  .attr("d", path);
+
+// Rings for tiny playable countries
+function mainPart(f) {
+  const g = f.geometry;
+  if (g.type === "Polygon") return f;
+  let best = null, ba = -1;
+  for (const coords of g.coordinates) {
+    const p = { type: "Polygon", coordinates: coords }, a = d3.geoArea(p);
+    if (a > ba) { ba = a; best = p; }
+  }
+  return { type: "Feature", geometry: best };
+}
+const ringData = [];
+for (const f of features) {
+  const name = f.properties.name;
+  if (!contOf[name]) continue;
+  const part = mainPart(f);
+  const [[x0, y0], [x1, y1]] = path.bounds(part);
+  const size = Math.max(x1 - x0, y1 - y0);
+  if (size < RING_BELOW_PX * 1.5 || name === "Tuvalu") {   // may be hidden later when zoomed in
+    ringData.push({ name, size, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+  }
+}
+ringData.sort((a, b) => b.size - a.size);   // smallest drawn last = on top
+const rings = gRings.selectAll("circle").data(ringData).join("circle").attr("class", "ring")
+  .attr("cx", d => d.cx).attr("cy", d => d.cy);
+
+let k = 1;
+function layoutRings() {
+  rings.style("display", d => d.size * k < RING_BELOW_PX ? null : "none")
+    .attr("r", d => Math.max(6, d.size * k / 2 + 3) / k)
+    .attr("stroke-width", 1.6 / k)
+    .attr("stroke-dasharray", `${3 / k} ${3 / k}`);
+}
+
+const zoom = d3.zoom().scaleExtent([1, 80]).translateExtent([[0, 0], [W, H]]).extent([[0, 0], [W, H]])
+  .on("zoom", e => { k = e.transform.k; gMain.attr("transform", e.transform); layoutRings(); });
+svg.call(zoom);
+layoutRings();
+
+let home = d3.zoomIdentity;
+function goHome(animate = true) {
+  (animate ? svg.transition().duration(800) : svg).call(zoom.transform, home);
+}
+function fitContinents(sel) {
+  if (!sel.length || sel.length === Object.keys(CONTINENTS).length) { home = d3.zoomIdentity; return goHome(); }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const c of sel) {
+    const [w, s, e, n] = BOXES[c];
+    for (const lon of [w, (w + e) / 2, e]) for (const lat of [s, (s + n) / 2, n]) {
+      const [x, y] = projection([lon, lat]);
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+  }
+  const kk = Math.min(10, 0.95 / Math.max((x1 - x0) / W, (y1 - y0) / H));
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  home = d3.zoomIdentity.translate(W / 2 - kk * cx, H / 2 - kk * cy).scale(kk);
+  // keep inside translate extent
+  const t = home;
+  const tx = Math.min(0, Math.max(W - W * t.k, t.x)), ty = Math.min(0, Math.max(H - H * t.k, t.y));
+  home = d3.zoomIdentity.translate(tx, ty).scale(t.k);
+  goHome();
+}
+d3.select("#zin").on("click", () => svg.transition().duration(250).call(zoom.scaleBy, 1.8));
+d3.select("#zout").on("click", () => svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.8));
+d3.select("#zreset").on("click", () => goHome());
+
+// ---------- Game state ----------
+const $ = id => document.getElementById(id);
+const allNames = Object.values(CONTINENTS).flat();
+let selected = new Set(Object.keys(CONTINENTS));
+let active = new Set(allNames);               // playable names in chosen continents
+let phase = "setup";
+let clicks = 0, queue = [], idx = 0, tries = 0, maxTries = 3, locked = false;
+const status = {};                            // name -> 'correct' | 'retry' | 'failed'
+
+function refreshMap() {
+  const cls = d => {
+    const c = canon(d.properties.name);
+    const playable = !!contOf[c];
+    return "country" + (!playable ? " terr" : !active.has(c) ? " out" : "") + (status[c] ? " " + status[c] : "");
+  };
+  paths.attr("class", cls);
+  rings.attr("class", d => "ring" + (!active.has(d.name) ? " out" : "") + (status[d.name] ? " " + status[d.name] : ""));
+}
+
+// hover
+function setHover(name, on) {
+  paths.filter(d => canon(d.properties.name) === name).classed("hover", on);
+  rings.filter(d => d.name === name).classed("hover", on);
+}
+paths.on("mouseenter", (e, d) => setHover(canon(d.properties.name), true))
+     .on("mouseleave", (e, d) => setHover(canon(d.properties.name), false))
+     .on("click", (e, d) => pick(canon(d.properties.name), d.properties.name));
+rings.on("mouseenter", (e, d) => setHover(d.name, true))
+     .on("mouseleave", (e, d) => setHover(d.name, false))
+     .on("click", (e, d) => pick(d.name, d.name));
+
+let toastT;
+function toast(msg, ms = 1600) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), ms);
+}
+function flash(name) {
+  const sel = paths.filter(d => canon(d.properties.name) === name);
+  sel.classed("flash", true); setTimeout(() => sel.classed("flash", false), 450);
+}
+
+function pick(name, rawName) {
+  if (phase !== "play" || locked) return;
+  if (!contOf[name]) return toast(`${rawName} — territory, not counted`);
+  if (!active.has(name)) return toast(`${disp(name)} is outside the selected continents`);
+  const target = queue[idx];
+  clicks++;
+  if (name === target) {
+    status[target] = tries === 0 ? "correct" : "retry";
+    toast(`✓ ${disp(target)}`);
+    refreshMap(); updateHud();
+    return advance(700);
+  }
+  tries++;
+  flash(name);
+  updateHud();
+  if (tries >= maxTries) {
+    toast(`✗ That's ${disp(name)}. Revealing ${disp(target)}`, 2000);
+    return reveal();
+  }
+  const left = maxTries - tries;
+  toast(`✗ That's ${disp(name)}` + (isFinite(left) ? ` — ${left} ${left === 1 ? "try" : "tries"} left` : ""));
+}
+function reveal() {
+  const target = queue[idx];
+  status[target] = "failed";
+  refreshMap(); updateHud();
+  paths.filter(d => canon(d.properties.name) === target).classed("reveal", true);
+  locked = true;
+  setTimeout(() => paths.classed("reveal", false), 2100);
+  advance(2200);
+}
+function advance(delay) {
+  locked = true;
+  setTimeout(() => {
+    idx++; tries = 0; locked = false;
+    if (idx >= queue.length) return finish();
+    updateHud();
+  }, delay);
+}
+function score() { return queue.filter(n => status[n] === "correct").length; }
+function updateHud() {
+  if (phase !== "play") { $("prompt").textContent = ""; $("progress").textContent = ""; $("score").textContent = ""; return; }
+  const answered = queue.filter(n => status[n]).length;
+  $("prompt").innerHTML = idx < queue.length ? `Find: <b>${disp(queue[idx])}</b>` : "";
+  $("progress").textContent = `${Math.min(idx + 1, queue.length)} / ${queue.length}`;
+  $("score").textContent = `Clicks: ${clicks} · First-try: ${score()}/${answered}`;
+}
+function finish() {
+  phase = "end";
+  const s = score(), n = queue.length;
+  const retry = queue.filter(x => status[x] === "retry").length;
+  const missed = queue.filter(x => status[x] === "failed");
+  $("finalScore").textContent = `${clicks} clicks for ${n} ${n === 1 ? "country" : "countries"}`;
+  $("finalDetail").textContent = `${(clicks / n).toFixed(2)} clicks per country (${n} is perfect) · ${s} first try · ${retry} with retries · ${missed.length} missed`;
+  $("missed").innerHTML = missed.map(m => `<li>${disp(m)} <span class="small">(${contOf[m]})</span></li>`).join("");
+  $("missedWrap").hidden = !missed.length;
+  $("endcard").classList.remove("hidden");
+  $("skipBtn").hidden = $("quitBtn").hidden = true;
+  $("prompt").textContent = ""; $("progress").textContent = "";
+  goHome();
+}
+
+// ---------- Setup UI ----------
+const chips = $("chips");
+for (const c of Object.keys(CONTINENTS)) {
+  const l = document.createElement("label");
+  l.innerHTML = `<input type="checkbox" checked value="${c}">${c} <small>${CONTINENTS[c].length}</small>`;
+  chips.appendChild(l);
+}
+function poolChanged() {
+  selected = new Set([...chips.querySelectorAll("input:checked")].map(i => i.value));
+  active = new Set([...selected].flatMap(c => CONTINENTS[c]));
+  const max = active.size, slider = $("count");
+  const wasMax = +slider.value >= +slider.max;
+  slider.max = Math.max(max, 1); slider.min = max ? 1 : 0;
+  slider.value = wasMax ? max : Math.min(+slider.value, max);
+  $("countOut").textContent = slider.value;
+  $("poolNote").textContent = `(${max} available)`;
+  $("startBtn").disabled = max === 0;
+  refreshMap();
+}
+chips.addEventListener("change", () => { poolChanged(); fitContinents([...selected]); });
+$("count").addEventListener("input", e => $("countOut").textContent = e.target.value);
+$("allBtn").onclick = () => { $("count").value = $("count").max; $("countOut").textContent = $("count").value; };
+
+function startGame() {
+  maxTries = +$("attempts").value || Infinity;
+  clicks = 0;
+  const pool = d3.shuffle([...active]);
+  queue = pool.slice(0, +$("count").value);
+  idx = 0; tries = 0; locked = false;
+  for (const k in status) delete status[k];
+  phase = "play";
+  $("setup").classList.add("hidden"); $("endcard").classList.add("hidden");
+  $("skipBtn").hidden = $("quitBtn").hidden = false;
+  refreshMap(); updateHud();
+}
+function toSetup() {
+  phase = "setup"; locked = false;
+  for (const k in status) delete status[k];
+  $("endcard").classList.add("hidden"); $("setup").classList.remove("hidden");
+  $("skipBtn").hidden = $("quitBtn").hidden = true;
+  updateHud(); poolChanged();
+}
+$("startBtn").onclick = startGame;
+$("againBtn").onclick = toSetup;
+$("quitBtn").onclick = toSetup;
+$("skipBtn").onclick = () => {
+  if (phase !== "play" || locked) return;
+  tries = Infinity; toast(`Skipped — it's ${disp(queue[idx])}`, 2000); reveal();
+};
+
+poolChanged();
+</script>
+</body>
+</html>
