@@ -257,8 +257,9 @@ for (const f of features) {
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
   const tiny = size < RING_BELOW_PX * 1.5;
-  if (isle || tiny) {   // non-island rings are hidden again once zoomed in (territories keep theirs)
-    ringData.push({ name, size, always: isle || (isTerr && tiny), hull: d3.polygonHull(pts) || pts });
+  const terrRing = isTerr && size < 40;   // territories (e.g. Northern Marianas chain) always keep a ring
+  if (isle || tiny || terrRing) {   // non-island rings are hidden again once zoomed in (territories keep theirs)
+    ringData.push({ name, size, always: isle || terrRing, hull: d3.polygonHull(pts) || pts });
   }
 }
 ringData.sort((a, b) => b.size - a.size);   // smallest drawn last = on top
