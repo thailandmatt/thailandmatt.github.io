@@ -168,6 +168,7 @@ const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
 const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
 // island nations always get a ring (around the whole archipelago)
 const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","New Zealand","Palau","Papua New Guinea","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
+const NO_RING = new Set(["French Guiana"]);   // big enough to see/click without one
 const RING_BELOW_PX = 8;   // show a ring while a country's on-screen size is below this
 const disp = n => DISPLAY[n] || (TERR[n] && TERR[n][0]) || n;
 const canon = n => ALIAS[n] || n;
@@ -243,7 +244,7 @@ const ringData = [];
 for (const f of features) {
   const name = f.properties.name;
   const isTerr = !!TERR[name];
-  if (!contOf[name] && !isTerr) continue;
+  if ((!contOf[name] && !isTerr) || NO_RING.has(name)) continue;
   const isle = ISLANDS.has(name);
   let polys = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
   const pb = coords => path.bounds({ type: "Polygon", coordinates: coords });
