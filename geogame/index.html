@@ -72,7 +72,7 @@
   <div id="prompt"></div>
   <span class="stat" id="progress"></span>
   <span class="stat" id="score"></span>
-  <button id="skipBtn" hidden>Skip</button>
+  <button id="skipBtn" hidden>🏳️ Give up – show me</button>
   <button id="quitBtn" hidden>Quit</button>
 </header>
 
@@ -374,12 +374,26 @@ function reveal() {
   refreshMap(); updateHud();
   paths.filter(d => canon(d.properties.name) === target).classed("reveal", true);
   locked = true;
-  setTimeout(() => paths.classed("reveal", false), 2100);
-  advance(2200);
+  setTimeout(() => paths.classed("reveal", false), 2600);
+  zoomTo(target);
+  advance(3200, true);
 }
-function advance(delay) {
+function zoomTo(name) {   // pan/zoom so the revealed country is centred and visible
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const f of paths.data().filter(d => canon(d.properties.name) === name)) {
+    const [[a, b], [c, d]] = path.bounds(mainPart(f));
+    x0 = Math.min(x0, a); y0 = Math.min(y0, b); x1 = Math.max(x1, c); y1 = Math.max(y1, d);
+  }
+  if (!isFinite(x0)) return;
+  const kk = Math.max(1, Math.min(12, 0.35 / Math.max((x1 - x0) / W, (y1 - y0) / H, 1e-6)));
+  const tx = Math.min(0, Math.max(W - W * kk, W / 2 - kk * (x0 + x1) / 2));
+  const ty = Math.min(0, Math.max(H - H * kk, H / 2 - kk * (y0 + y1) / 2));
+  svg.transition().duration(800).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(kk));
+}
+function advance(delay, zoomBack) {
   locked = true;
   setTimeout(() => {
+    if (zoomBack) goHome();
     idx++; tries = 0; locked = false;
     if (idx >= queue.length) return finish();
     updateHud();
@@ -458,7 +472,7 @@ $("againBtn").onclick = toSetup;
 $("quitBtn").onclick = toSetup;
 $("skipBtn").onclick = () => {
   if (phase !== "play" || locked) return;
-  tries = Infinity; toast(`Skipped — it's ${disp(queue[idx])}`, 2000); reveal();
+  tries = Infinity; toast(`It's ${disp(queue[idx])}`, 3000); reveal();
 };
 
 poolChanged();
