@@ -167,8 +167,8 @@ const TERR = {
 const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
 const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
 // island nations always get a ring (around the whole archipelago)
-const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","New Zealand","Palau","Papua New Guinea","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
-const NO_RING = new Set(["French Guiana"]);   // big enough to see/click without one
+const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","Palau","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
+const NO_RING = new Set(["French Guiana", "Greenland", "W. Sahara"]);   // big enough to see/click without one
 const RING_BELOW_PX = 8;   // show a ring while a country's on-screen size is below this
 const disp = n => DISPLAY[n] || (TERR[n] && TERR[n][0]) || n;
 const canon = n => ALIAS[n] || n;
@@ -251,19 +251,27 @@ for (const f of features) {
   const polys = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
   let groups = [polys];
   const [[ax, ay], [bx, by]] = path.bounds(f);
-  if (Math.max(bx - ax, by - ay) > 60) {
+  const spread = Math.max(bx - ax, by - ay) > 60;
+  if (isle || isTerr || spread) {
     // Spread out (Kiribati, NZ + Chathams...): cluster nearby parts. Island nations/territories ring every cluster;
     // anything else only rings the cluster around its biggest part.
     const sorted = [...polys].sort((p, q) => d3.geoArea({ type: "Polygon", coordinates: q }) - d3.geoArea({ type: "Polygon", coordinates: p }));
     groups = [];
     for (const p of sorted) {
-      const c = pcenter(p), g = groups.find(g => Math.hypot(c[0] - g.c[0], c[1] - g.c[1]) < 30);
+      const c = pcenter(p), g = groups.find(g => Math.hypot(c[0] - g.c[0], c[1] - g.c[1]) < (isle || isTerr ? 18 : 30));
       if (g) g.polys.push(p); else groups.push({ c, polys: [p] });
     }
     groups = (isle || isTerr ? groups : groups.slice(0, 1)).map(g => g.polys);
   }
+  // a group whose points straddle the antimeridian (e.g. Fiji) is split into its east and west halves
+  const halves = [];
   for (const grp of groups) {
-    const pts = grp.flatMap(p => p[0].map(c => projection(c)));
+    const all = grp.flatMap(p => p[0].map(c => projection(c))), xs0 = all.map(p => p[0]);
+    if (Math.max(...xs0) - Math.min(...xs0) > 200) halves.push(all.filter(p => p[0] < W / 2), all.filter(p => p[0] >= W / 2));
+    else halves.push(all);
+  }
+  for (const pts of halves) {
+    if (!pts.length) continue;
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
     const tiny = size < RING_BELOW_PX * 1.5;
