@@ -91,7 +91,6 @@
       <h2>New game</h2>
       <label class="row">Continents</label>
       <div class="chips" id="chips"></div>
-      <label class="row" style="font-weight:400"><input type="checkbox" id="terrToggle" checked> <b>Include territories</b> <span class="small">(Puerto Rico, Martinique, Greenland, Hong Kong…)</span></label>
       <label class="row">Number of countries <span class="small" id="poolNote"></span></label>
       <div class="sliderline">
         <input type="range" id="count" min="1" max="10" value="10">
@@ -176,7 +175,7 @@ const contOf = {};
 for (const [c, list] of Object.entries(CONTINENTS)) list.forEach(n => contOf[n] = c);
 const isPlayable = n => !!contOf[n];
 function setTerritories(on) {
-  for (const [n, [, c]] of Object.entries(TERR)) { if (on) contOf[n] = c; else delete contOf[n]; }
+  for (const n of Object.keys(TERR)) { if (on) contOf[n] = "Territories"; else delete contOf[n]; }
 }
 
 // ---------- Map ----------
@@ -284,7 +283,7 @@ function goHome(animate = true) {
   (animate ? svg.transition().duration(800) : svg).call(zoom.transform, home);
 }
 function fitContinents(sel) {
-  if (!sel.length || sel.length === Object.keys(CONTINENTS).length) { home = d3.zoomIdentity; return goHome(); }
+  if (!sel.length || sel.includes("Territories") || sel.length === Object.keys(CONTINENTS).length) { home = d3.zoomIdentity; return goHome(); }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const c of sel) {
     const [w, s, e, n] = BOXES[c];
@@ -401,7 +400,7 @@ function finish() {
   const missed = queue.filter(x => status[x] === "failed");
   $("finalScore").textContent = `${clicks} clicks for ${n} ${n === 1 ? "country" : "countries"}`;
   $("finalDetail").textContent = `${(clicks / n).toFixed(2)} clicks per country (${n} is perfect) · ${s} first try · ${retry} with retries · ${missed.length} missed`;
-  $("missed").innerHTML = missed.map(m => `<li>${disp(m)} <span class="small">(${contOf[m]})</span></li>`).join("");
+  $("missed").innerHTML = missed.map(m => `<li>${disp(m)} <span class="small">(${TERR[m] ? TERR[m][1] : contOf[m]})</span></li>`).join("");
   $("missedWrap").hidden = !missed.length;
   $("endcard").classList.remove("hidden");
   $("skipBtn").hidden = $("quitBtn").hidden = true;
@@ -411,15 +410,17 @@ function finish() {
 
 // ---------- Setup UI ----------
 const chips = $("chips");
-for (const c of Object.keys(CONTINENTS)) {
+for (const c of [...Object.keys(CONTINENTS), "Territories"]) {
   const l = document.createElement("label");
   l.innerHTML = `<input type="checkbox" checked value="${c}">${c} <small data-count="${c}"></small>`;
   chips.appendChild(l);
 }
 function poolChanged() {
   selected = new Set([...chips.querySelectorAll("input:checked")].map(i => i.value));
+  setTerritories(selected.has("Territories"));
   active = new Set(Object.keys(contOf).filter(n => selected.has(contOf[n])));
-  chips.querySelectorAll("small").forEach(el => el.textContent = Object.values(contOf).filter(v => v === el.dataset.count).length);
+  layoutRings();
+  chips.querySelectorAll("small").forEach(el => el.textContent = el.dataset.count === "Territories" ? Object.keys(TERR).length : CONTINENTS[el.dataset.count].length);
   const max = active.size, slider = $("count");
   const wasMax = +slider.value >= +slider.max;
   slider.max = Math.max(max, 1); slider.min = max ? 1 : 0;
@@ -430,7 +431,6 @@ function poolChanged() {
   refreshMap();
 }
 chips.addEventListener("change", () => { poolChanged(); fitContinents([...selected]); });
-$("terrToggle").addEventListener("change", e => { setTerritories(e.target.checked); poolChanged(); layoutRings(); });
 $("count").addEventListener("input", e => $("countOut").textContent = e.target.value);
 $("allBtn").onclick = () => { $("count").value = $("count").max; $("countOut").textContent = $("count").value; };
 
@@ -461,9 +461,7 @@ $("skipBtn").onclick = () => {
   tries = Infinity; toast(`Skipped — it's ${disp(queue[idx])}`, 2000); reveal();
 };
 
-setTerritories(true);
 poolChanged();
-layoutRings();
 </script>
 </body>
 </html>
