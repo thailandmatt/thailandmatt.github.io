@@ -30,7 +30,7 @@
   .country { fill: var(--land); stroke: var(--border); stroke-width: .6px; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill .15s; }
   .country.terr { fill: var(--terr); cursor: default; }
   .country.out { fill: var(--out); cursor: default; }
-  .country.hover:not(.out):not(.terr) { fill: #ffe9a8; }
+  .country.hover:not(.out):not(.terr) { fill: #ff7eb9; }
   .country.correct { fill: var(--ok); }
   .country.retry { fill: var(--retry); }
   .country.failed { fill: var(--fail); }
@@ -39,7 +39,7 @@
   @keyframes blink { 50% { fill: #fff; } }
   .ring { fill: transparent; stroke: #3a4a57; pointer-events: all; cursor: pointer; }
   .ring.out { stroke: #b5b5b5; cursor: default; }
-  .ring.hover { stroke: #d17a00; }
+  .ring.hover { stroke: #e0007a; stroke-width: 3px; }
   .ring.correct { stroke: #2f8f3a; } .ring.retry { stroke: #b88a00; } .ring.failed { stroke: #c62828; }
   #toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: rgba(29,43,54,.92); color: #fff; padding: 8px 16px; border-radius: 999px; font-size: 15px; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
   #toast.show { opacity: 1; }
@@ -143,6 +143,8 @@ const DISPLAY = {
 };
 const ALIAS = { "Somaliland":"Somalia", "N. Cyprus":"Cyprus" };
 const SKIP_DRAW = new Set(["Antarctica","Fr. S. Antarctic Lands","Heard I. and McDonald Is."]);
+// island nations always get a ring (around the whole archipelago)
+const ISLANDS = new Set(["Antigua and Barb.","Bahamas","Bahrain","Barbados","Cabo Verde","Comoros","Cyprus","Dominica","Fiji","Grenada","Jamaica","Kiribati","Maldives","Malta","Marshall Is.","Mauritius","Micronesia","Nauru","Palau","Saint Lucia","Samoa","São Tomé and Principe","Seychelles","Singapore","Solomon Is.","St. Kitts and Nevis","St. Vin. and Gren.","Tonga","Trinidad and Tobago","Tuvalu","Vanuatu"]);
 const RING_BELOW_PX = 8;   // show a ring while a country's on-screen size is below this
 const disp = n => DISPLAY[n] || n;
 const canon = n => ALIAS[n] || n;
@@ -187,11 +189,13 @@ const ringData = [];
 for (const f of features) {
   const name = f.properties.name;
   if (!contOf[name]) continue;
-  const part = mainPart(f);
-  const [[x0, y0], [x1, y1]] = path.bounds(part);
+  const isle = ISLANDS.has(name);
+  let [[x0, y0], [x1, y1]] = path.bounds(f);
+  if (isle && Math.max(x1 - x0, y1 - y0) > 60) [[x0, y0], [x1, y1]] = path.bounds(mainPart(f));  // too spread out (e.g. Kiribati)
+  if (!isle) [[x0, y0], [x1, y1]] = path.bounds(mainPart(f));
   const size = Math.max(x1 - x0, y1 - y0);
-  if (size < RING_BELOW_PX * 1.5 || name === "Tuvalu") {   // may be hidden later when zoomed in
-    ringData.push({ name, size, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+  if (isle || size < RING_BELOW_PX * 1.5) {   // non-island rings are hidden again once zoomed in
+    ringData.push({ name, size, always: isle, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
   }
 }
 ringData.sort((a, b) => b.size - a.size);   // smallest drawn last = on top
@@ -200,8 +204,8 @@ const rings = gRings.selectAll("circle").data(ringData).join("circle").attr("cla
 
 let k = 1;
 function layoutRings() {
-  rings.style("display", d => d.size * k < RING_BELOW_PX ? null : "none")
-    .attr("r", d => Math.max(6, d.size * k / 2 + 3) / k)
+  rings.style("display", d => d.always || d.size * k < RING_BELOW_PX ? null : "none")
+    .attr("r", d => Math.max(6, d.size * k / 2 + 4) / k)
     .attr("stroke-width", 1.6 / k)
     .attr("stroke-dasharray", `${3 / k} ${3 / k}`);
 }
