@@ -91,7 +91,7 @@
       <h2>New game</h2>
       <label class="row">Continents</label>
       <div class="chips" id="chips"></div>
-      <label class="row" style="font-weight:400"><input type="checkbox" id="terrToggle"> <b>Include territories</b> <span class="small">(Puerto Rico, Martinique, Greenland, Hong Kong…)</span></label>
+      <label class="row" style="font-weight:400"><input type="checkbox" id="terrToggle" checked> <b>Include territories</b> <span class="small">(Puerto Rico, Martinique, Greenland, Hong Kong…)</span></label>
       <label class="row">Number of countries <span class="small" id="poolNote"></span></label>
       <div class="sliderline">
         <input type="range" id="count" min="1" max="10" value="10">
@@ -460,7 +460,9 @@ $("skipBtn").onclick = () => {
   tries = Infinity; toast(`Skipped — it's ${disp(queue[idx])}`, 2000); reveal();
 };
 
+setTerritories(true);
 poolChanged();
+layoutRings();
 </script>
 </body>
 </html>
