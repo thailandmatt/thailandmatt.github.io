@@ -241,25 +241,36 @@ function mainPart(f) {
   return { type: "Feature", geometry: best };
 }
 const ringData = [];
+const pbounds = coords => path.bounds({ type: "Polygon", coordinates: coords });
+const pcenter = coords => { const [[a, b], [c, d]] = pbounds(coords); return [(a + c) / 2, (b + d) / 2]; };
 for (const f of features) {
   const name = f.properties.name;
   const isTerr = !!TERR[name];
   if ((!contOf[name] && !isTerr) || NO_RING.has(name)) continue;
   const isle = ISLANDS.has(name);
-  let polys = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
-  const pb = coords => path.bounds({ type: "Polygon", coordinates: coords });
+  const polys = f.geometry.type === "MultiPolygon" ? f.geometry.coordinates : [f.geometry.coordinates];
+  let groups = [polys];
   const [[ax, ay], [bx, by]] = path.bounds(f);
-  if (Math.max(bx - ax, by - ay) > 60) {   // too spread out (Kiribati, NZ + Chathams): keep the biggest part and its neighbours
-    const main = mainPart(f).geometry.coordinates, [[a, b], [c, d]] = pb(main), mc = [(a + c) / 2, (b + d) / 2];
-    polys = polys.filter(p => { const [[e, g], [h, i]] = pb(p); return Math.hypot((e + h) / 2 - mc[0], (g + i) / 2 - mc[1]) < 30; });
+  if (Math.max(bx - ax, by - ay) > 60) {
+    // Spread out (Kiribati, NZ + Chathams...): cluster nearby parts. Island nations/territories ring every cluster;
+    // anything else only rings the cluster around its biggest part.
+    const sorted = [...polys].sort((p, q) => d3.geoArea({ type: "Polygon", coordinates: q }) - d3.geoArea({ type: "Polygon", coordinates: p }));
+    groups = [];
+    for (const p of sorted) {
+      const c = pcenter(p), g = groups.find(g => Math.hypot(c[0] - g.c[0], c[1] - g.c[1]) < 30);
+      if (g) g.polys.push(p); else groups.push({ c, polys: [p] });
+    }
+    groups = (isle || isTerr ? groups : groups.slice(0, 1)).map(g => g.polys);
   }
-  const pts = polys.flatMap(p => p[0].map(c => projection(c)));
-  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-  const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
-  const tiny = size < RING_BELOW_PX * 1.5;
-  const terrRing = isTerr && size < 40;   // territories (e.g. Northern Marianas chain) always keep a ring
-  if (isle || tiny || terrRing) {   // non-island rings are hidden again once zoomed in (territories keep theirs)
-    ringData.push({ name, size, always: isle || terrRing, hull: d3.polygonHull(pts) || pts });
+  for (const grp of groups) {
+    const pts = grp.flatMap(p => p[0].map(c => projection(c)));
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+    const tiny = size < RING_BELOW_PX * 1.5;
+    const terrRing = isTerr && size < 40;   // territories (e.g. Northern Marianas chain) always keep a ring
+    if (isle || tiny || terrRing) {   // non-island rings are hidden again once zoomed in
+      ringData.push({ name, size, always: isle || terrRing, hull: d3.polygonHull(pts) || pts });
+    }
   }
 }
 ringData.sort((a, b) => b.size - a.size);   // smallest drawn last = on top
